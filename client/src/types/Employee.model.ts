@@ -1,5 +1,6 @@
 import { type Manager } from "./Manager.model";
 import { type Absence, AbsenceType } from "./Absence.model";
+import { type Timelog } from "./Timelog.model";
 export const EmploymentStatus = {
   ACTIVE: "active",
   INACTIVE: "inactive",
@@ -19,22 +20,6 @@ export const TimeInLieuStatus = {
 
 export type TimeInLieuStatus =
   (typeof TimeInLieuStatus)[keyof typeof TimeInLieuStatus];
-
-export interface Timelog {
-  id: string;
-  employeeId: string;
-  date: string;
-  clockIn: string;
-  clockOut?: string;
-  breakDuration: number; // minutes
-  totalHours: number;
-  notes?: string;
-  approved: boolean;
-  approvedBy?: string;
-  approvedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface TimeInLieu {
   id: string;
