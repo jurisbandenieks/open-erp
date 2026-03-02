@@ -1,6 +1,7 @@
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import AppRoutes from "./Routes";
+import { theme } from "./theme";
 
 import "@mantine/core/styles.css";
 // ‼️ import notifications styles after core package styles
@@ -12,7 +13,7 @@ import { Notifications } from "@mantine/notifications";
 
 function App() {
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <ModalsProvider>
         <AppRoutes />
 
