@@ -1,17 +1,14 @@
-import { Routes, Route, Navigate, BrowserRouter } from "react-router";
-
-// Placeholder components
-const Home = () => <h2>Home</h2>;
-const About = () => <h2>About</h2>;
+import { Routes, Route, BrowserRouter } from "react-router";
+import { Home } from "@/views/Home/Home";
+import NotFound from "@/views/NotFound/NotFound";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
         {/* Redirect any unknown path to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
