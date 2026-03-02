@@ -7,14 +7,11 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<Layout />}
-          children={[
-            <Route path="timelogs" element={<Timelogs />} />,
-            <Route path="admin" element={<div>Admin</div>} />
-          ]}
-        />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<div>Dashboard</div>} />
+          <Route path="timelogs" element={<Timelogs />} />
+          <Route path="admin" element={<div>Admin</div>}></Route>
+        </Route>
         {/* Redirect any unknown path to home */}
         <Route path="*" element={<NotFound />} />
       </Routes>
