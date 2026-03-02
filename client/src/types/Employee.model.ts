@@ -1,3 +1,5 @@
+import { type Manager } from "./Manager.model";
+
 export const EmploymentStatus = {
   ACTIVE: "active",
   INACTIVE: "inactive",
@@ -37,15 +39,6 @@ export const TimeInLieuStatus = {
 
 export type TimeInLieuStatus =
   (typeof TimeInLieuStatus)[keyof typeof TimeInLieuStatus];
-
-export interface Manager {
-  id: string;
-  employeeId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  department?: string;
-}
 
 export interface Timelog {
   id: string;
