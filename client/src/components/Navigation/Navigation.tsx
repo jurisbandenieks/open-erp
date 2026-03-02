@@ -17,11 +17,11 @@ interface NavigationProps {
 
 const menuItems = [
   { icon: IconHome, label: "Dashboard", path: "/" },
-  { icon: IconUsers, label: "Employees", path: "/employees" },
-  { icon: IconBuilding, label: "Entities", path: "/entities" },
+  { icon: IconUsers, label: "Employees", path: "/admin/employees" },
+  { icon: IconBuilding, label: "Entities", path: "/admin/entities" },
   { icon: IconCalendar, label: "Absences", path: "/absences" },
   { icon: IconClock, label: "Timelogs", path: "/timelogs" },
-  { icon: IconFileText, label: "Reports", path: "/reports" }
+  { icon: IconFileText, label: "Reports", path: "/admin/reports" }
 ];
 
 export function Navigation({ onNavigate }: NavigationProps) {

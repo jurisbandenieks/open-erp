@@ -2,12 +2,9 @@ import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Navigation } from "@/components/Navigation/Navigation";
 import { Header } from "@/components/Header/Header";
+import { Outlet } from "react-router";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export function Layout({ children }: LayoutProps) {
+export function Layout() {
   const [opened, { toggle }] = useDisclosure();
 
   return (
@@ -26,7 +23,9 @@ export function Layout({ children }: LayoutProps) {
         <Navigation onNavigate={toggle} />
       </AppShell.Navbar>
 
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        <Outlet />
+      </AppShell.Main>
     </AppShell>
   );
 }
