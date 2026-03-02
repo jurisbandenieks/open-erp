@@ -1,5 +1,5 @@
 import { type Manager } from "./Manager.model";
-
+import { type Absence, AbsenceType } from "./Absence.model";
 export const EmploymentStatus = {
   ACTIVE: "active",
   INACTIVE: "inactive",
@@ -9,26 +9,6 @@ export const EmploymentStatus = {
 
 export type EmploymentStatus =
   (typeof EmploymentStatus)[keyof typeof EmploymentStatus];
-
-export const AbsenceType = {
-  VACATION: "vacation",
-  SICK_LEAVE: "sick_leave",
-  PERSONAL: "personal",
-  UNPAID: "unpaid",
-  MATERNITY: "maternity",
-  PATERNITY: "paternity"
-} as const;
-
-export type AbsenceType = (typeof AbsenceType)[keyof typeof AbsenceType];
-
-export const AbsenceStatus = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
-  CANCELLED: "cancelled"
-} as const;
-
-export type AbsenceStatus = (typeof AbsenceStatus)[keyof typeof AbsenceStatus];
 
 export const TimeInLieuStatus = {
   PENDING: "pending",
@@ -52,23 +32,6 @@ export interface Timelog {
   approved: boolean;
   approvedBy?: string;
   approvedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Absence {
-  id: string;
-  employeeId: string;
-  type: AbsenceType;
-  status: AbsenceStatus;
-  startDate: string;
-  endDate: string;
-  totalDays: number;
-  reason?: string;
-  notes?: string;
-  requestedAt: string;
-  reviewedBy?: string;
-  reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
