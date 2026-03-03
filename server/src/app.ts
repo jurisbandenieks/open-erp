@@ -1,7 +1,6 @@
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import cors from "cors";
 import compression from "compression";
 import { env } from "./config/env";
 import { rateLimiter } from "./middleware/rateLimiter";
@@ -14,7 +13,6 @@ const app = express();
 
 // Security
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 
 // Parsing
 app.use(express.json());
