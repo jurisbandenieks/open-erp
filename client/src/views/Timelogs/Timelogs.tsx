@@ -108,7 +108,7 @@ export const Timelogs = () => {
           </Group>
 
           {/* Filters */}
-          <Group align="flex-end" grow>
+          <Group align="flex-start" grow>
             <Select
               label="Employee"
               placeholder="All Employees"
@@ -117,6 +117,7 @@ export const Timelogs = () => {
               onChange={setSelectedEmployeeId}
               clearable
               searchable
+              size="sm"
               maxDropdownHeight={300}
               style={{ flex: 1 }}
             />

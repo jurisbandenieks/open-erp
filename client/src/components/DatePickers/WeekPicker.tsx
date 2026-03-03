@@ -58,25 +58,24 @@ export function WeekPicker({
       <Text size="sm" fw={500}>
         {label}
       </Text>
-      <Group gap="xs" wrap="nowrap">
+      <Group gap="xs" wrap="nowrap" align="flex-end">
         <Button
           variant="default"
           size="sm"
           onClick={goToPreviousWeek}
-          leftSection={<IconChevronLeft size={16} />}
-          px="xs"
-        >
-          Prev
-        </Button>
+          leftSection={<IconChevronLeft size={14} />}
+          px="sm"
+        />
 
         <DatePickerInput
           value={weekStart}
           onChange={(dateString) =>
             handleDateChange(new Date(dateString ?? ""))
           }
-          leftSection={<IconCalendar size={16} />}
+          leftSection={<IconCalendar size={14} />}
           placeholder="Select week"
           valueFormat="MMM DD, YYYY"
+          size="sm"
           style={{ flex: 1 }}
           styles={{
             input: { textAlign: "center" }
@@ -87,11 +86,9 @@ export function WeekPicker({
           variant="default"
           size="sm"
           onClick={goToNextWeek}
-          rightSection={<IconChevronRight size={16} />}
-          px="xs"
-        >
-          Next
-        </Button>
+          rightSection={<IconChevronRight size={14} />}
+          px="sm"
+        />
 
         <Button
           variant={isCurrentWeek ? "filled" : "light"}
