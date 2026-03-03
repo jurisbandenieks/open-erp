@@ -57,6 +57,22 @@ export enum ManagerRole {
   PROJECT_MANAGER = "project_manager"
 }
 
+// ─── Timelog ─────────────────────────────────────────────────────────────────
+
+export enum TimelogType {
+  STANDARD = "standard",
+  OVERTIME = "overtime",
+  HOLIDAY = "holiday",
+  SICK = "sick"
+}
+
+export enum TimelogStatus {
+  DRAFT = "draft",
+  SUBMITTED = "submitted",
+  APPROVED = "approved",
+  REJECTED = "rejected"
+}
+
 // ─── Countries (ISO 3166-1 alpha-2) ──────────────────────────────────────────
 
 export enum Country {

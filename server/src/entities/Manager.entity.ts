@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
   ManyToOne,
   ManyToMany,
   JoinColumn,
@@ -14,6 +15,7 @@ import { ManagerRole } from "./enums";
 import { User } from "./User.entity";
 import type { Company } from "./Company.entity";
 import type { Employee } from "./Employee.entity";
+import type { Timelog } from "./Timelog.entity";
 
 @Entity("managers")
 export class Manager {
@@ -58,6 +60,10 @@ export class Manager {
 
   @Column({ default: true })
   isActive!: boolean;
+
+  // One manager → many timelogs
+  @OneToMany("Timelog", (timelog: Timelog) => timelog.manager)
+  timelogs!: Timelog[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;

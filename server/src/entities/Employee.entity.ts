@@ -7,12 +7,14 @@ import {
   ManyToOne,
   ManyToMany,
   OneToOne,
+  OneToMany,
   JoinColumn
 } from "typeorm";
 import { EmploymentStatus, ContractType } from "./enums";
 import { User } from "./User.entity";
 import type { Company } from "./Company.entity";
 import type { Manager } from "./Manager.entity";
+import type { Timelog } from "./Timelog.entity";
 
 @Entity("employees")
 export class Employee {
@@ -79,6 +81,10 @@ export class Employee {
   // Many employees ↔ many managers (inverse side)
   @ManyToMany("Manager", (manager: Manager) => manager.employees)
   managers!: Manager[];
+
+  // One employee → many timelogs
+  @OneToMany("Timelog", (timelog: Timelog) => timelog.employee)
+  timelogs!: Timelog[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
