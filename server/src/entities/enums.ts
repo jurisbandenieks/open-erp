@@ -73,6 +73,26 @@ export enum TimelogStatus {
   REJECTED = "rejected"
 }
 
+// ─── Absence ─────────────────────────────────────────────────────────────────
+
+export enum AbsenceType {
+  VACATION = "vacation",
+  SICK_LEAVE = "sick_leave",
+  PERSONAL = "personal",
+  UNPAID = "unpaid",
+  MATERNITY = "maternity",
+  PATERNITY = "paternity",
+  BEREAVEMENT = "bereavement",
+  STUDY = "study"
+}
+
+export enum AbsenceStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  CANCELLED = "cancelled"
+}
+
 // ─── Countries (ISO 3166-1 alpha-2) ──────────────────────────────────────────
 
 export enum Country {
