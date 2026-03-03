@@ -27,6 +27,6 @@ RUN addgroup -g 1001 -S nodejs && \
     chown -R nodeuser:nodejs /app
 USER nodeuser
 
-EXPOSE 8000
+EXPOSE 5000
 
 CMD ["node", "dist/index.js"]
