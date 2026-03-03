@@ -4,32 +4,26 @@ import {
   Title,
   Group,
   Select,
-  Button,
   Stack,
-  Text,
   Badge,
   Loader,
   Alert
 } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
-import {
-  IconCalendar,
-  IconChevronLeft,
-  IconChevronRight,
-  IconAlertCircle
-} from "@tabler/icons-react";
+import { IconAlertCircle } from "@tabler/icons-react";
+import { WeekPicker } from "@/components/DatePickers/Weekpicker";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef, GridReadyEvent } from "ag-grid-community";
+import type { GridReadyEvent } from "ag-grid-community";
+import { getTimelogColumnDefs, defaultTimelogColDef } from "./Timelogs.columns";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import {
   useTimelogsByEmployeeAndWeek,
   useTimelogsByWeek
 } from "@/api/useTimelog";
-import type { Timelog } from "@/types/Timelog.model";
 import employeesData from "@/mock/Employees.json";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import type { Timelog } from "@/types/Timelog.model";
 
 dayjs.extend(isoWeek);
 
@@ -69,147 +63,9 @@ export const Timelogs = () => {
     []
   );
 
-  // Navigate week
-  const goToPreviousWeek = useCallback(() => {
-    setWeekStart(dayjs(weekStart).subtract(1, "week").toDate());
-  }, [weekStart]);
-
-  const goToNextWeek = useCallback(() => {
-    setWeekStart(dayjs(weekStart).add(1, "week").toDate());
-  }, [weekStart]);
-
-  const goToCurrentWeek = useCallback(() => {
-    setWeekStart(dayjs().startOf("isoWeek").toDate());
-  }, []);
-
-  // Status badge renderer
-  const statusRenderer = (params: { value: string }) => {
-    const colorMap: Record<string, string> = {
-      draft: "gray",
-      submitted: "blue",
-      approved: "green",
-      rejected: "red"
-    };
-    return (
-      <Badge color={colorMap[params.value] || "gray"} variant="light">
-        {params.value?.toUpperCase()}
-      </Badge>
-    );
-  };
-
-  // Type badge renderer
-  const typeRenderer = (params: { value: string }) => {
-    const colorMap: Record<string, string> = {
-      regular: "blue",
-      overtime: "orange",
-      remote: "teal",
-      on_site: "violet"
-    };
-    return (
-      <Badge color={colorMap[params.value] || "gray"} variant="outline">
-        {params.value?.replace("_", " ").toUpperCase()}
-      </Badge>
-    );
-  };
-
-  // Billable renderer
-  const billableRenderer = (params: { data: Timelog }) => {
-    if (!params.data.billable) return <Text size="sm">-</Text>;
-    return (
-      <Group gap="xs">
-        <Badge color="green" size="sm" variant="dot">
-          ${(params.data.billableHours || 0) * (params.data.hourlyRate || 0)}
-        </Badge>
-      </Group>
-    );
-  };
-
-  // Date renderer
-  const dateRenderer = (params: { value: string }) => {
-    return dayjs(params.value).format("ddd, MMM DD");
-  };
-
-  // Column definitions
-  const columnDefs = useMemo<ColDef<Timelog>[]>(
-    () => [
-      {
-        headerName: "Date",
-        field: "date",
-        cellRenderer: dateRenderer,
-        width: 130,
-        pinned: "left"
-      },
-      {
-        headerName: "Employee",
-        field: "employeeName",
-        width: 180,
-        pinned: "left",
-        hide: !!selectedEmployeeId
-      },
-      {
-        headerName: "Entity/Project",
-        field: "entityName",
-        width: 180,
-        valueGetter: (params) => params.data?.entityName || "-"
-      },
-      {
-        headerName: "Hours",
-        field: "totalHours",
-        width: 90,
-        type: "numericColumn",
-        valueFormatter: (params) => `${params.value}h`
-      },
-      {
-        headerName: "Type",
-        field: "type",
-        cellRenderer: typeRenderer,
-        width: 120
-      },
-      {
-        headerName: "Status",
-        field: "status",
-        cellRenderer: statusRenderer,
-        width: 120
-      },
-      {
-        headerName: "Description",
-        field: "description",
-        flex: 1,
-        minWidth: 250,
-        tooltipField: "description"
-      },
-      {
-        headerName: "Location",
-        field: "location",
-        width: 150,
-        valueGetter: (params) => {
-          if (params.data?.isRemote) return "Remote";
-          return params.data?.location || "-";
-        }
-      },
-      {
-        headerName: "Billable",
-        field: "billable",
-        cellRenderer: billableRenderer,
-        width: 120
-      },
-      {
-        headerName: "Approved By",
-        field: "approvedByName",
-        width: 150,
-        valueGetter: (params) => params.data?.approvedByName || "-"
-      }
-    ],
+  const columnDefs = useMemo(
+    () => getTimelogColumnDefs(!!selectedEmployeeId),
     [selectedEmployeeId]
-  );
-
-  const defaultColDef = useMemo<ColDef>(
-    () => ({
-      sortable: true,
-      filter: true,
-      resizable: true
-    }),
-    []
   );
 
   const onGridReady = useCallback((params: GridReadyEvent) => {
@@ -265,54 +121,12 @@ export const Timelogs = () => {
               style={{ flex: 1 }}
             />
 
-            <Stack gap="xs" style={{ flex: 1 }}>
-              <Text size="sm" fw={500}>
-                Week Range
-              </Text>
-              <Group gap="xs">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={goToPreviousWeek}
-                  leftSection={<IconChevronLeft size={16} />}
-                >
-                  Previous
-                </Button>
-                <DatePickerInput
-                  value={weekStart}
-                  onChange={(date) =>
-                    date &&
-                    setWeekStart(dayjs(date).startOf("isoWeek").toDate())
-                  }
-                  leftSection={<IconCalendar size={16} />}
-                  placeholder="Select week"
-                  valueFormat="MMM DD, YYYY"
-                  style={{ flex: 1 }}
-                />
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={goToNextWeek}
-                  rightSection={<IconChevronRight size={16} />}
-                >
-                  Next
-                </Button>
-              </Group>
-            </Stack>
-
-            <Button
-              onClick={goToCurrentWeek}
-              variant="light"
-              style={{ flex: 0, minWidth: 120 }}
-            >
-              Current Week
-            </Button>
+            <WeekPicker
+              weekStart={weekStart}
+              onChange={setWeekStart}
+              label="Week Range"
+            />
           </Group>
-
-          <Text size="sm" c="dimmed">
-            Showing: {dayjs(weekStart).format("MMM DD, YYYY")} -{" "}
-            {dayjs(weekEnd).format("MMM DD, YYYY")}
-          </Text>
         </Stack>
       </Paper>
 
@@ -339,7 +153,7 @@ export const Timelogs = () => {
             <AgGridReact<Timelog>
               rowData={timelogsData?.data || []}
               columnDefs={columnDefs}
-              defaultColDef={defaultColDef}
+              defaultColDef={defaultTimelogColDef}
               onGridReady={onGridReady}
               pagination={true}
               paginationPageSize={50}
