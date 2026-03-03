@@ -93,6 +93,16 @@ export enum AbsenceStatus {
   CANCELLED = "cancelled"
 }
 
+// ─── Holiday ─────────────────────────────────────────────────────────────────
+
+export enum HolidayType {
+  PUBLIC = "public",
+  NATIONAL = "national",
+  RELIGIOUS = "religious",
+  COMPANY = "company",
+  REGIONAL = "regional"
+}
+
 // ─── Countries (ISO 3166-1 alpha-2) ──────────────────────────────────────────
 
 export enum Country {
