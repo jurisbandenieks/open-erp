@@ -4,6 +4,8 @@ import { logger } from "./logger";
 import { User } from "../entities/User.entity";
 import { Owner } from "../entities/Owner.entity";
 import { Company } from "../entities/Company.entity";
+import { Employee } from "../entities/Employee.entity";
+import { Manager } from "../entities/Manager.entity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -14,7 +16,7 @@ export const AppDataSource = new DataSource({
   password: env.DB_PASSWORD,
   synchronize: env.NODE_ENV === "development",
   logging: env.NODE_ENV === "development",
-  entities: [User, Owner, Company],
+  entities: [User, Owner, Company, Employee, Manager],
   migrations: ["src/migrations/**/*.ts"],
   subscribers: []
 });

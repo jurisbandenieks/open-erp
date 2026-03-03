@@ -9,7 +9,7 @@ import {
   JoinColumn
 } from "typeorm";
 import { User } from "./User.entity";
-import { OwnerStatus, Country } from "./enums";
+import { OwnerStatus } from "./enums";
 import type { Company } from "./Company.entity";
 
 @Entity("owners")
@@ -40,12 +40,6 @@ export class Owner {
 
   @Column({ nullable: true })
   displayName!: string;
-
-  @Column({ nullable: true })
-  phone!: string;
-
-  @Column({ type: "enum", enum: Country, nullable: true })
-  country!: Country;
 
   @Column({ nullable: true })
   taxId!: string;

@@ -30,6 +30,33 @@ export enum CompanyStatus {
   SUSPENDED = "suspended"
 }
 
+// ─── Employee ─────────────────────────────────────────────────────────────────
+
+export enum EmploymentStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  ON_LEAVE = "on_leave",
+  TERMINATED = "terminated"
+}
+
+export enum ContractType {
+  FULL_TIME = "full-time",
+  PART_TIME = "part-time",
+  CONTRACT = "contract",
+  INTERN = "intern",
+  FREELANCE = "freelance"
+}
+
+// ─── Manager ──────────────────────────────────────────────────────────────────
+
+export enum ManagerRole {
+  PRIMARY = "primary",
+  SECONDARY = "secondary",
+  TECHNICAL_LEAD = "technical_lead",
+  ACCOUNT_MANAGER = "account_manager",
+  PROJECT_MANAGER = "project_manager"
+}
+
 // ─── Countries (ISO 3166-1 alpha-2) ──────────────────────────────────────────
 
 export enum Country {

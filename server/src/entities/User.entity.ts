@@ -7,6 +7,7 @@ import {
   OneToOne
 } from "typeorm";
 import { UserRole, UserStatus } from "./enums";
+import { Country } from "./enums";
 
 @Entity("users")
 export class User {
@@ -27,6 +28,15 @@ export class User {
 
   @Column({ nullable: true })
   avatar!: string;
+
+  @Column({ nullable: true })
+  phoneNumber!: string;
+
+  @Column({ nullable: true })
+  address!: string;
+
+  @Column({ type: "enum", enum: Country, nullable: true })
+  country!: Country;
 
   @Column({ type: "enum", enum: UserRole, default: UserRole.USER })
   role!: UserRole;
