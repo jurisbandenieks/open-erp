@@ -68,10 +68,8 @@ export const DataGrid = <TData,>({
   pagination = true,
   paginationPageSize = 50,
   paginationPageSizeSelector = [25, 50, 100],
-  rowSelection = "multiple",
   animateRows = true,
   tooltipShowDelay = 500,
-  className = "ag-theme-quartz",
   style = { height: "100%", width: "100%" },
   onGridReady,
   ...modeProps
@@ -94,13 +92,12 @@ export const DataGrid = <TData,>({
     pagination,
     paginationPageSize,
     paginationPageSizeSelector,
-    rowSelection,
     animateRows,
     tooltipShowDelay
   };
 
   return (
-    <div className={className} style={style}>
+    <div style={style}>
       {modeProps.serverSide ? (
         <AgGridReact<TData>
           {...sharedProps}
