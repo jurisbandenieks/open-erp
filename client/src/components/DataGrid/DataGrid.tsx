@@ -2,12 +2,16 @@ import { AgGridReact } from "ag-grid-react";
 import type {
   ColDef,
   GridReadyEvent,
-  RowSelectionOptions
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
+  RowSelectionOptions,
+  SortModelItem
 } from "ag-grid-community";
 import { useCallback } from "react";
 
-export interface DataGridProps<TData> {
-  rowData: TData[];
+// ─── Shared props ────────────────────────────────────────────────────────────
+
+interface DataGridBaseProps<TData> {
   columnDefs: ColDef<TData>[];
 
   // Overridable defaults
@@ -23,6 +27,32 @@ export interface DataGridProps<TData> {
   onGridReady?: (params: GridReadyEvent<TData>) => void;
 }
 
+// ─── Client-side mode ────────────────────────────────────────────────────────
+
+interface ClientSideProps<TData> extends DataGridBaseProps<TData> {
+  serverSide?: false;
+  rowData: TData[];
+  datasource?: never;
+}
+
+// ─── Server-side mode ────────────────────────────────────────────────────────
+
+interface ServerSideProps<TData> extends DataGridBaseProps<TData> {
+  serverSide: true;
+  datasource: IServerSideDatasource;
+  rowData?: never;
+}
+
+export type DataGridProps<TData> =
+  | ClientSideProps<TData>
+  | ServerSideProps<TData>;
+
+// ─── Helper types exported for consumers building a datasource ───────────────
+
+export type { IServerSideDatasource, IServerSideGetRowsParams, SortModelItem };
+
+// ─── Defaults ────────────────────────────────────────────────────────────────
+
 const defaultColDefBase: ColDef = {
   sortable: true,
   filter: true,
@@ -30,8 +60,9 @@ const defaultColDefBase: ColDef = {
   suppressMovable: false
 };
 
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export const DataGrid = <TData,>({
-  rowData,
   columnDefs,
   defaultColDef,
   pagination = true,
@@ -42,7 +73,8 @@ export const DataGrid = <TData,>({
   tooltipShowDelay = 500,
   className = "ag-theme-quartz",
   style = { height: "100%", width: "100%" },
-  onGridReady
+  onGridReady,
+  ...modeProps
 }: DataGridProps<TData>) => {
   const handleGridReady = useCallback(
     (params: GridReadyEvent<TData>) => {
@@ -52,20 +84,34 @@ export const DataGrid = <TData,>({
     [onGridReady]
   );
 
+  const sharedProps = {
+    columnDefs,
+    defaultColDef: {
+      ...(defaultColDefBase as ColDef<TData>),
+      ...defaultColDef
+    },
+    onGridReady: handleGridReady,
+    pagination,
+    paginationPageSize,
+    paginationPageSizeSelector,
+    rowSelection,
+    animateRows,
+    tooltipShowDelay
+  };
+
   return (
     <div className={className} style={style}>
-      <AgGridReact<TData>
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={{ ...(defaultColDefBase as ColDef<TData>), ...defaultColDef }}
-        onGridReady={handleGridReady}
-        pagination={pagination}
-        paginationPageSize={paginationPageSize}
-        paginationPageSizeSelector={paginationPageSizeSelector}
-        rowSelection={rowSelection}
-        animateRows={animateRows}
-        tooltipShowDelay={tooltipShowDelay}
-      />
+      {modeProps.serverSide ? (
+        <AgGridReact<TData>
+          {...sharedProps}
+          rowModelType="serverSide"
+          serverSideDatasource={modeProps.datasource}
+          // Server-side pagination is handled by the grid itself
+          cacheBlockSize={paginationPageSize}
+        />
+      ) : (
+        <AgGridReact<TData> {...sharedProps} rowData={modeProps.rowData} />
+      )}
     </div>
   );
 };
