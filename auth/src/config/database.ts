@@ -1,0 +1,26 @@
+import { DataSource } from "typeorm";
+import { User } from "../entities/User.entity";
+import { env } from "./env";
+import { logger } from "./logger";
+
+export const AuthDataSource = new DataSource({
+  type: "postgres",
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  database: env.DB_NAME,
+  username: env.DB_USER,
+  password: env.DB_PASSWORD,
+  synchronize: false, // schema is managed by the api service
+  logging: env.NODE_ENV === "development",
+  entities: [User],
+});
+
+export const connectDatabase = async () => {
+  try {
+    await AuthDataSource.initialize();
+    logger.info("Auth service — PostgreSQL connected");
+  } catch (error) {
+    logger.error("Auth service — Database connection failed:", error);
+    throw error;
+  }
+};

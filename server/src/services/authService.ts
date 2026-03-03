@@ -2,16 +2,11 @@ import axios from "axios";
 import { redisClient } from "../config/redis";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
+import type { AuthPayload } from "@shared/types/auth";
+
+export type { AuthPayload };
 
 const TOKEN_CACHE_TTL = 60; // seconds
-
-export interface AuthPayload {
-  userId: string;
-  email: string;
-  roles: string[];
-  iat: number;
-  exp: number;
-}
 
 export const validateToken = async (token: string): Promise<AuthPayload> => {
   const cacheKey = `token:${token}`;
@@ -33,7 +28,10 @@ export const validateToken = async (token: string): Promise<AuthPayload> => {
   );
 
   // Cache the valid payload
-  const ttl = Math.min(data.exp - Math.floor(Date.now() / 1000), TOKEN_CACHE_TTL);
+  const ttl = Math.min(
+    data.exp - Math.floor(Date.now() / 1000),
+    TOKEN_CACHE_TTL
+  );
   if (ttl > 0) {
     await redisClient.setex(cacheKey, ttl, JSON.stringify(data));
   }
