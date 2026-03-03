@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import {
   Paper,
   Title,
@@ -10,9 +10,8 @@ import {
   Alert
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { WeekPicker } from "@/components/DatePickers/Weekpicker";
-import { AgGridReact } from "ag-grid-react";
-import type { GridReadyEvent } from "ag-grid-community";
+import { WeekPicker } from "@/components/DatePickers/WeekPicker";
+import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getTimelogColumnDefs, defaultTimelogColDef } from "./Timelogs.columns";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -21,8 +20,7 @@ import {
   useTimelogsByWeek
 } from "@/api/useTimelog";
 import employeesData from "@/mock/Employees.json";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-quartz.css";
+
 import type { Timelog } from "@/types/Timelog.model";
 
 dayjs.extend(isoWeek);
@@ -67,10 +65,6 @@ export const Timelogs = () => {
     () => getTimelogColumnDefs(!!selectedEmployeeId),
     [selectedEmployeeId]
   );
-
-  const onGridReady = useCallback((params: GridReadyEvent) => {
-    params.api.sizeColumnsToFit();
-  }, []);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -147,23 +141,11 @@ export const Timelogs = () => {
             {error instanceof Error ? error.message : "An error occurred"}
           </Alert>
         ) : (
-          <div
-            className="ag-theme-quartz"
-            style={{ height: "100%", width: "100%" }}
-          >
-            <AgGridReact<Timelog>
-              rowData={timelogsData?.data || []}
-              columnDefs={columnDefs}
-              defaultColDef={defaultTimelogColDef}
-              onGridReady={onGridReady}
-              pagination={true}
-              paginationPageSize={50}
-              paginationPageSizeSelector={[25, 50, 100]}
-              rowSelection="multiple"
-              animateRows={true}
-              tooltipShowDelay={500}
-            />
-          </div>
+          <DataGrid<Timelog>
+            rowData={timelogsData?.data || []}
+            columnDefs={columnDefs}
+            defaultColDef={defaultTimelogColDef}
+          />
         )}
       </Paper>
     </Stack>
