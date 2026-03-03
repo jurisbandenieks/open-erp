@@ -57,6 +57,13 @@ export class TimeInLieu {
   absenceId!: string | null;
 
   // Expiry
+  // Tracking usage
+  @Column({ type: "decimal", precision: 5, scale: 2, default: 0 })
+  hoursUsed!: number;
+
+  @Column({ nullable: true, type: "date" })
+  usedDate!: Date;
+
   @Column({ nullable: true, type: "date" })
   expiryDate!: Date;
 

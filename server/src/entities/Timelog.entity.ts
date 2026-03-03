@@ -82,6 +82,16 @@ export class Timelog {
   @Column({ nullable: true })
   rejectionReason!: string;
 
+  // Billing
+  @Column({ default: false })
+  billable!: boolean;
+
+  @Column({ nullable: true, type: "decimal", precision: 5, scale: 2 })
+  billableHours!: number;
+
+  @Column({ nullable: true, type: "decimal", precision: 10, scale: 2 })
+  hourlyRate!: number;
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 
