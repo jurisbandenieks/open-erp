@@ -9,4 +9,4 @@ COPY tsconfig.json ./
 
 EXPOSE 5000
 
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "npm run seed && npm run dev"]

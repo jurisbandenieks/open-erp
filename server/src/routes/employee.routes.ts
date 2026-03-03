@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middleware/authenticate";
+import { getEmployeesByCompanyViaManagers } from "../services/employeeService";
 
 const router = Router();
 
@@ -10,12 +11,26 @@ router.get("/", (_req, res) => {
   res.json({ success: true, data: [], message: "Get all employees" });
 });
 
+// Must be declared before /:id to avoid route param collision
+router.get("/by-company/:companyId", async (req, res, next) => {
+  try {
+    const employees = await getEmployeesByCompanyViaManagers(
+      req.params.companyId
+    );
+    res.json({ success: true, data: employees });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get("/:id", (_req, res) => {
   res.json({ success: true, data: null, message: "Get employee by id" });
 });
 
 router.post("/", authorize("admin", "hr"), (_req, res) => {
-  res.status(201).json({ success: true, data: null, message: "Create employee" });
+  res
+    .status(201)
+    .json({ success: true, data: null, message: "Create employee" });
 });
 
 router.put("/:id", authorize("admin", "hr"), (_req, res) => {
