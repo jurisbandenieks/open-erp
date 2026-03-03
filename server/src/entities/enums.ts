@@ -83,13 +83,24 @@ export enum AbsenceType {
   MATERNITY = "maternity",
   PATERNITY = "paternity",
   BEREAVEMENT = "bereavement",
-  STUDY = "study"
+  STUDY = "study",
+  TIME_IN_LIEU = "time_in_lieu"
 }
 
 export enum AbsenceStatus {
   PENDING = "pending",
   APPROVED = "approved",
   REJECTED = "rejected",
+  CANCELLED = "cancelled"
+}
+
+// ─── Time In Lieu ───────────────────────────────────────────────────────────
+
+export enum TimeInLieuStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  USED = "used",
+  EXPIRED = "expired",
   CANCELLED = "cancelled"
 }
 

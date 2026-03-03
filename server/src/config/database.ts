@@ -9,6 +9,7 @@ import { Manager } from "../entities/Manager.entity";
 import { Timelog } from "../entities/Timelog.entity";
 import { Absence } from "../entities/Absence.entity";
 import { Holiday } from "../entities/Holiday.entity";
+import { TimeInLieu } from "../entities/TimeInLieu.entity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -27,7 +28,8 @@ export const AppDataSource = new DataSource({
     Manager,
     Timelog,
     Absence,
-    Holiday
+    Holiday,
+    TimeInLieu
   ],
   migrations: ["src/migrations/**/*.ts"],
   subscribers: []

@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToOne,
   JoinColumn,
   Check
 } from "typeorm";
 import { AbsenceType, AbsenceStatus } from "./enums";
 import type { Employee } from "./Employee.entity";
+import type { TimeInLieu } from "./TimeInLieu.entity";
 
 @Entity("absences")
 @Check(`"endDate" >= "startDate"`)
@@ -67,6 +69,10 @@ export class Absence {
 
   @Column({ nullable: true })
   rejectionReason!: string;
+
+  // Linked TimeInLieu record — only populated when type = TIME_IN_LIEU
+  @OneToOne("TimeInLieu", (til: TimeInLieu) => til.absence, { nullable: true })
+  timeInLieu!: TimeInLieu | null;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;

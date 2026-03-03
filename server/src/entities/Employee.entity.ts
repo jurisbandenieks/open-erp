@@ -16,6 +16,7 @@ import type { Company } from "./Company.entity";
 import type { Manager } from "./Manager.entity";
 import type { Timelog } from "./Timelog.entity";
 import type { Absence } from "./Absence.entity";
+import type { TimeInLieu } from "./TimeInLieu.entity";
 
 @Entity("employees")
 export class Employee {
@@ -90,6 +91,10 @@ export class Employee {
   // One employee → many absences
   @OneToMany("Absence", (absence: Absence) => absence.employee)
   absences!: Absence[];
+
+  // One employee → many time-in-lieu records
+  @OneToMany("TimeInLieu", (til: TimeInLieu) => til.employee)
+  timeInLieus!: TimeInLieu[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
