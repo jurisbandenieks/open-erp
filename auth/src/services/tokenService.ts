@@ -5,7 +5,7 @@ import { redisClient } from "../config/redis";
 import { env } from "../config/env";
 import { logger } from "../config/logger";
 import { User } from "../entities/User.entity";
-import { UserStatus } from "@shared/entities/enums";
+import { UserRole, UserStatus, Country } from "@shared/entities/enums";
 import type { AuthPayload } from "@shared/types/auth";
 import { AppError } from "../middleware/errorHandler";
 
@@ -18,7 +18,55 @@ const verify = (token: string): AuthPayload =>
   jwt.verify(token, env.JWT_SECRET) as AuthPayload;
 
 const REFRESH_PREFIX = "refresh:";
-const BLOCK_PREFIX   = "blocked:";
+const BLOCK_PREFIX = "blocked:";
+
+// ─── Register ─────────────────────────────────────────────────────────────────
+
+export interface RegisterResult {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole;
+  status: UserStatus;
+}
+
+export const register = async (
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string
+): Promise<RegisterResult> => {
+  const userRepo = AuthDataSource.getRepository(User);
+
+  const existing = await userRepo.findOne({
+    where: { email: email.toLowerCase() }
+  });
+  if (existing) throw new AppError("Email already in use", 409);
+
+  const hashed = await bcrypt.hash(password, 12);
+
+  const user = userRepo.create({
+    email: email.toLowerCase(),
+    password: hashed,
+    firstName,
+    lastName,
+    role: UserRole.USER,
+    status: UserStatus.PENDING,
+    country: undefined as unknown as Country
+  });
+
+  await userRepo.save(user);
+
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    status: user.status
+  };
+};
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 
@@ -55,10 +103,10 @@ export const login = async (
   const payload: Omit<AuthPayload, "iat" | "exp"> = {
     userId: user.id,
     email: user.email,
-    roles: [user.role],
+    roles: [user.role]
   };
 
-  const accessToken  = sign(payload, env.JWT_ACCESS_EXPIRES_IN);
+  const accessToken = sign(payload, env.JWT_ACCESS_EXPIRES_IN);
   const refreshToken = sign({ userId: user.id }, env.JWT_REFRESH_EXPIRES_IN);
 
   // Persist refresh token in Redis (one active session per user)
@@ -70,12 +118,16 @@ export const login = async (
   );
 
   // Update lastLoginAt (fire & forget — do not block the response)
-  userRepo.update(user.id, { lastLoginAt: new Date() }).catch((err: unknown) =>
-    logger.warn("Failed to update lastLoginAt", err)
-  );
+  userRepo
+    .update(user.id, { lastLoginAt: new Date() })
+    .catch((err: unknown) => logger.warn("Failed to update lastLoginAt", err));
 
   const { password: _pw, ...safeUser } = user;
-  return { accessToken, refreshToken, user: safeUser as Omit<User, "password"> };
+  return {
+    accessToken,
+    refreshToken,
+    user: safeUser as Omit<User, "password">
+  };
 };
 
 // ─── Validate ─────────────────────────────────────────────────────────────────
@@ -94,7 +146,9 @@ export const validate = async (token: string): Promise<AuthPayload> => {
 
 // ─── Refresh ──────────────────────────────────────────────────────────────────
 
-export const refresh = async (refreshToken: string): Promise<{ accessToken: string }> => {
+export const refresh = async (
+  refreshToken: string
+): Promise<{ accessToken: string }> => {
   let decoded: { userId: string };
   try {
     decoded = jwt.verify(refreshToken, env.JWT_SECRET) as { userId: string };
