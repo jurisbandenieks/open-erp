@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import {
   Anchor,
   Box,
@@ -15,9 +15,10 @@ import {
 } from "@mantine/core";
 import { IconAt, IconLock, IconUser } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router";
-import { axiosClient } from "@/api/client";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { authApi } from "@/api/authApi";
 
-interface RegisterForm {
+interface RegisterFormValues {
   firstName: string;
   lastName: string;
   email: string;
@@ -25,52 +26,33 @@ interface RegisterForm {
   confirmPassword: string;
 }
 
-const INITIAL: RegisterForm = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  confirmPassword: ""
-};
-
 export function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<RegisterForm>(INITIAL);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const set =
-    (field: keyof RegisterForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.currentTarget.value }));
-
-  const validate = (): string | null => {
-    if (!form.firstName.trim()) return "First name is required.";
-    if (!form.lastName.trim()) return "Last name is required.";
-    if (!form.email.trim()) return "Email is required.";
-    if (form.password.length < 8)
-      return "Password must be at least 8 characters.";
-    if (form.password !== form.confirmPassword)
-      return "Passwords do not match.";
-    return null;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting }
+  } = useForm<RegisterFormValues>({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: ""
     }
+  });
 
-    setLoading(true);
+  const onSubmit: SubmitHandler<RegisterFormValues> = async (values) => {
+    setServerError(null);
     try {
-      await axiosClient.post("/v1/users", {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim(),
-        password: form.password
+      await authApi.register({
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        email: values.email.trim(),
+        password: values.password
       });
       navigate("/login", {
         state: { registered: true },
@@ -80,9 +62,7 @@ export function RegisterPage() {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "Registration failed. Please try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      setServerError(message);
     }
   };
 
@@ -99,28 +79,30 @@ export function RegisterPage() {
         </Stack>
 
         <Paper shadow="sm" p="xl" radius="md" withBorder>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Stack gap="md">
               <Grid gutter="md">
                 <Grid.Col span={6}>
                   <TextInput
                     label="First name"
                     placeholder="Jane"
-                    value={form.firstName}
-                    onChange={set("firstName")}
                     leftSection={<IconUser size={16} />}
-                    required
                     autoComplete="given-name"
+                    error={errors.firstName?.message}
+                    {...register("firstName", {
+                      required: "First name is required"
+                    })}
                   />
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <TextInput
                     label="Last name"
                     placeholder="Doe"
-                    value={form.lastName}
-                    onChange={set("lastName")}
-                    required
                     autoComplete="family-name"
+                    error={errors.lastName?.message}
+                    {...register("lastName", {
+                      required: "Last name is required"
+                    })}
                   />
                 </Grid.Col>
               </Grid>
@@ -128,41 +110,54 @@ export function RegisterPage() {
               <TextInput
                 label="Email address"
                 placeholder="you@example.com"
-                value={form.email}
-                onChange={set("email")}
                 leftSection={<IconAt size={16} />}
-                required
                 autoComplete="email"
+                error={errors.email?.message}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Enter a valid email address"
+                  }
+                })}
               />
 
               <PasswordInput
                 label="Password"
                 description="Minimum 8 characters"
                 placeholder="Create a password"
-                value={form.password}
-                onChange={set("password")}
                 leftSection={<IconLock size={16} />}
-                required
                 autoComplete="new-password"
+                error={errors.password?.message}
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters"
+                  }
+                })}
               />
 
               <PasswordInput
                 label="Confirm password"
                 placeholder="Repeat your password"
-                value={form.confirmPassword}
-                onChange={set("confirmPassword")}
                 leftSection={<IconLock size={16} />}
-                required
                 autoComplete="new-password"
+                error={errors.confirmPassword?.message}
+                {...register("confirmPassword", {
+                  required: "Please confirm your password",
+                  validate: (val) =>
+                    val === watch("password") || "Passwords do not match"
+                })}
               />
 
-              {error && (
+              {serverError && (
                 <Text c="red" size="sm" ta="center">
-                  {error}
+                  {serverError}
                 </Text>
               )}
 
-              <Button type="submit" fullWidth loading={loading} mt="xs">
+              <Button type="submit" fullWidth loading={isSubmitting} mt="xs">
                 Create account
               </Button>
             </Stack>

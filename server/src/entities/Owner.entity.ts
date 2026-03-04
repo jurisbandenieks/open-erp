@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 import { User } from "./User.entity";
 import { OwnerStatus } from "./enums";
-import type { Company } from "./Company.entity";
+import { Company } from "./Company.entity";
 
 @Entity("owners")
 export class Owner {
@@ -18,10 +18,7 @@ export class Owner {
   id!: string;
 
   // One Owner → one User (Owner IS a User)
-  @OneToOne(() => User, (user) => user.owner, {
-    nullable: false,
-    onDelete: "CASCADE"
-  })
+  @OneToOne(() => User, { nullable: false, onDelete: "CASCADE" })
   @JoinColumn({ name: "userId" })
   user!: User;
 
@@ -29,7 +26,7 @@ export class Owner {
   userId!: string;
 
   // One Owner → many Companies
-  @OneToMany("Company", (company: Company) => company.owner, {
+  @OneToMany(() => Company, (company: Company) => company.owner, {
     cascade: true,
     eager: false
   })

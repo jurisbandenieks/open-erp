@@ -1,4 +1,5 @@
 import axios from "axios";
+import { axiosClient } from "./client";
 
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "/auth";
 
@@ -34,6 +35,10 @@ export interface RegisterPayload {
 }
 
 export const authApi = {
+  register: async (payload: RegisterPayload): Promise<void> => {
+    await axiosClient.post("/v1/users", payload);
+  },
+
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
     const { data } = await authClient.post<AuthResponse>("/login", payload);
     return data;

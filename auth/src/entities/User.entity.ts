@@ -3,8 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToOne,
+  UpdateDateColumn
 } from "typeorm";
 import { UserRole, UserStatus, Country } from "@shared/entities/enums";
 
@@ -54,8 +53,4 @@ export class User {
 
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt!: Date;
-
-  // Inverse relation — not used by auth service but kept for schema compatibility
-  @OneToOne("Owner", "user")
-  owner!: unknown;
 }

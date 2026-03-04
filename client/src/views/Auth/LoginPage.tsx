@@ -16,32 +16,37 @@ import {
 } from "@mantine/core";
 import { IconAt, IconLock } from "@tabler/icons-react";
 import { Link, useNavigate } from "react-router";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAuth } from "@/context/AuthContext";
+
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginFormValues>({
+    defaultValues: { email: "", password: "" }
+  });
 
-    if (!email.trim() || !password) {
-      setError("Please fill in all fields.");
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit: SubmitHandler<LoginFormValues> = async ({
+    email,
+    password
+  }) => {
+    setServerError(null);
     try {
-      await login({ email: email.trim(), password });
+      await login({ email, password });
       if (rememberMe) {
-        localStorage.setItem("rememberEmail", email.trim());
+        localStorage.setItem("rememberEmail", email);
       } else {
         localStorage.removeItem("rememberEmail");
       }
@@ -50,9 +55,7 @@ export function LoginPage() {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "Invalid email or password.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      setServerError(message);
     }
   };
 
@@ -69,26 +72,32 @@ export function LoginPage() {
         </Stack>
 
         <Paper shadow="sm" p="xl" radius="md" withBorder>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Stack gap="md">
               <TextInput
                 label="Email address"
                 placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
                 leftSection={<IconAt size={16} />}
-                required
                 autoComplete="email"
+                error={errors.email?.message}
+                {...register("email", {
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Enter a valid email address"
+                  }
+                })}
               />
 
               <PasswordInput
                 label="Password"
                 placeholder="Your password"
-                value={password}
-                onChange={(e) => setPassword(e.currentTarget.value)}
                 leftSection={<IconLock size={16} />}
-                required
                 autoComplete="current-password"
+                error={errors.password?.message}
+                {...register("password", {
+                  required: "Password is required"
+                })}
               />
 
               <Group justify="space-between">
@@ -103,13 +112,13 @@ export function LoginPage() {
                 </Anchor>
               </Group>
 
-              {error && (
+              {serverError && (
                 <Text c="red" size="sm" ta="center">
-                  {error}
+                  {serverError}
                 </Text>
               )}
 
-              <Button type="submit" fullWidth loading={loading} mt="xs">
+              <Button type="submit" fullWidth loading={isSubmitting} mt="xs">
                 Sign in
               </Button>
             </Stack>

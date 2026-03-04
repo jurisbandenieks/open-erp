@@ -12,7 +12,7 @@ export const AuthDataSource = new DataSource({
   password: env.DB_PASSWORD,
   synchronize: false, // schema is managed by the api service
   logging: env.NODE_ENV === "development",
-  entities: [User],
+  entities: [User]
 });
 
 export const connectDatabase = async () => {
@@ -20,7 +20,8 @@ export const connectDatabase = async () => {
     await AuthDataSource.initialize();
     logger.info("Auth service — PostgreSQL connected");
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
     logger.error("Auth service — Database connection failed:", error);
-    throw error;
+    throw new Error(`Database connection failed: ${msg}`);
   }
 };
