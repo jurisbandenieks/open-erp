@@ -15,7 +15,7 @@ import {
   Title
 } from "@mantine/core";
 import { IconAt, IconLock } from "@tabler/icons-react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, Navigate } from "react-router";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAuth } from "@/context/AuthContext";
 
@@ -25,8 +25,12 @@ interface LoginFormValues {
 }
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  if (!isLoading && isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
   const [rememberMe, setRememberMe] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 

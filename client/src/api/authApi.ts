@@ -39,8 +39,11 @@ export const authApi = {
   },
 
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
-    const { data } = await authClient.post<AuthResponse>("/login", payload);
-    return data;
+    const { data } = await authClient.post<{
+      success: boolean;
+      data: AuthResponse;
+    }>("/login", payload);
+    return data.data;
   },
 
   logout: async (accessToken: string): Promise<void> => {
@@ -54,10 +57,10 @@ export const authApi = {
   refresh: async (
     refreshToken: string
   ): Promise<Pick<AuthResponse, "accessToken">> => {
-    const { data } = await authClient.post<Pick<AuthResponse, "accessToken">>(
-      "/refresh",
-      { refreshToken }
-    );
-    return data;
+    const { data } = await authClient.post<{
+      success: boolean;
+      data: Pick<AuthResponse, "accessToken">;
+    }>("/refresh", { refreshToken });
+    return data.data;
   }
 };

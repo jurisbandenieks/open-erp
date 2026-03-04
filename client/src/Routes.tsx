@@ -5,27 +5,30 @@ import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
+import { AuthProvider } from "@/context/AuthContext";
 
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Public auth routes (no navbar/sidebar) */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <AuthProvider>
+        <Routes>
+          {/* Public auth routes (no navbar/sidebar) */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected application routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<div>Dashboard</div>} />
-            <Route path="timelogs" element={<Timelogs />} />
-            <Route path="admin" element={<div>Admin</div>} />
+          {/* Protected application routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<div>Dashboard</div>} />
+              <Route path="timelogs" element={<Timelogs />} />
+              <Route path="admin" element={<div>Admin</div>} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Redirect any unknown path to home */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Redirect any unknown path to home */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

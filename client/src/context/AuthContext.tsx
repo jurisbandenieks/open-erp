@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode
 } from "react";
+import { useNavigate } from "react-router";
 import { authApi, type AuthResponse, type LoginPayload } from "@/api/authApi";
 
 interface AuthUser {
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Re-hydrate from localStorage on mount
   useEffect(() => {
@@ -72,8 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("authUser");
+      navigate("/login", { replace: true });
     }
-  }, [accessToken]);
+  }, [accessToken, navigate]);
 
   const value = useMemo(
     () => ({

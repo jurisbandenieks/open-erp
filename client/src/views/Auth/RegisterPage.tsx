@@ -14,9 +14,10 @@ import {
   Title
 } from "@mantine/core";
 import { IconAt, IconLock, IconUser } from "@tabler/icons-react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, Navigate } from "react-router";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { authApi } from "@/api/authApi";
+import { useAuth } from "@/context/AuthContext";
 
 interface RegisterFormValues {
   firstName: string;
@@ -28,7 +29,12 @@ interface RegisterFormValues {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  if (!isLoading && isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const {
     register,
