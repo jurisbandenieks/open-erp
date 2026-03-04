@@ -33,7 +33,8 @@ axiosClient.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+        const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "/auth";
+        const response = await axios.post(`${AUTH_BASE_URL}/refresh`, {
           refreshToken
         });
 

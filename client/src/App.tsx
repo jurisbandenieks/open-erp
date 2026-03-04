@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import AppRoutes from "./Routes";
 import { theme } from "./theme";
+import { AuthProvider } from "./context/AuthContext";
 
 import "@mantine/core/styles.css";
 // ‼️ import notifications styles after core package styles
@@ -26,7 +27,9 @@ function App() {
       <MantineProvider theme={theme}>
         <ModalsProvider>
           <AgGridProvider modules={modules}>
-            <AppRoutes />
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
           </AgGridProvider>
           <Notifications />
         </ModalsProvider>
