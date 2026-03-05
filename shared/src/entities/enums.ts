@@ -1,6 +1,7 @@
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 export enum UserRole {
+  SYSADMIN = "sysadmin",
   ADMIN = "admin",
   USER = "user",
   MANAGER = "manager",
