@@ -9,9 +9,8 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ownerApi } from "@/api/ownerApi";
-import type { Owner, UpdateOwnerPayload } from "@/types/Owner.model";
+import { useUpdateOwner } from "@/api/useOwner";
+import type { Owner } from "@/types/Owner.model";
 
 interface EditFormValues {
   firstName: string;
@@ -33,7 +32,6 @@ interface Props {
 }
 
 export function EditOwnerModal({ owner, onClose }: Props) {
-  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -54,16 +52,10 @@ export function EditOwnerModal({ owner, onClose }: Props) {
 
   const statusValue = watch("status");
 
-  const mutation = useMutation({
-    mutationFn: (data: UpdateOwnerPayload) => ownerApi.update(owner!.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["owners"] });
-      onClose();
-    }
-  });
+  const mutation = useUpdateOwner({ onSuccess: onClose });
 
   const onSubmit = handleSubmit(async (values) => {
-    await mutation.mutateAsync(values);
+    await mutation.mutateAsync({ id: owner!.id, payload: values });
   });
 
   return (

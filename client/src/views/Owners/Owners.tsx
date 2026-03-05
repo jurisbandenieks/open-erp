@@ -20,8 +20,7 @@ import {
   IconTrash,
   IconAlertCircle
 } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
-import { ownerApi } from "@/api/ownerApi";
+import { useOwners } from "@/api/useOwner";
 import type { Owner } from "@/types/Owner.model";
 import { CreateOwnerModal } from "./CreateOwnerModal";
 import { EditOwnerModal } from "./EditOwnerModal";
@@ -50,10 +49,7 @@ export function Owners() {
     data: owners,
     isLoading,
     error
-  } = useQuery({
-    queryKey: ["owners"],
-    queryFn: () => ownerApi.list()
-  });
+  } = useOwners();
 
   return (
     <>

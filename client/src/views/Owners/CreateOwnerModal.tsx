@@ -9,9 +9,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ownerApi } from "@/api/ownerApi";
-import type { CreateOwnerPayload } from "@/types/Owner.model";
+import { useCreateOwner } from "@/api/useOwner";
 
 interface CreateFormValues {
   email: string;
@@ -28,7 +26,6 @@ interface Props {
 }
 
 export function CreateOwnerModal({ opened, onClose }: Props) {
-  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -36,10 +33,8 @@ export function CreateOwnerModal({ opened, onClose }: Props) {
     formState: { errors, isSubmitting }
   } = useForm<CreateFormValues>();
 
-  const mutation = useMutation({
-    mutationFn: (data: CreateOwnerPayload) => ownerApi.create(data),
+  const mutation = useCreateOwner({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["owners"] });
       reset();
       onClose();
     }

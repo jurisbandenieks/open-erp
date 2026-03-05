@@ -1,7 +1,6 @@
 import { Modal, Stack, Group, Text, Button, Alert } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ownerApi } from "@/api/ownerApi";
+import { useDeleteOwner } from "@/api/useOwner";
 import type { Owner } from "@/types/Owner.model";
 
 interface Props {
@@ -10,14 +9,7 @@ interface Props {
 }
 
 export function DeleteOwnerModal({ owner, onClose }: Props) {
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: () => ownerApi.remove(owner!.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["owners"] });
-      onClose();
-    }
-  });
+  const mutation = useDeleteOwner({ onSuccess: onClose });
 
   const displayName =
     owner?.displayName || `${owner?.user.firstName} ${owner?.user.lastName}`;
@@ -45,7 +37,7 @@ export function DeleteOwnerModal({ owner, onClose }: Props) {
           <Button
             color="red"
             loading={mutation.isPending}
-            onClick={() => mutation.mutate()}
+            onClick={() => mutation.mutate(owner?.id ?? "")}
           >
             Delete
           </Button>
