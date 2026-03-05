@@ -1,10 +1,12 @@
 import { Routes, Route, BrowserRouter } from "react-router";
 import NotFound from "@/views/NotFound/NotFound";
 import { Timelogs } from "@/views/Timelogs/Timelogs";
+import { Owners } from "@/views/Owners/Owners";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
+import { SysadminRoute } from "@/components/SysadminRoute/SysadminRoute";
 import { AuthProvider } from "@/context/AuthContext";
 
 const AppRoutes = () => {
@@ -22,6 +24,11 @@ const AppRoutes = () => {
               <Route index element={<div>Dashboard</div>} />
               <Route path="timelogs" element={<Timelogs />} />
               <Route path="admin" element={<div>Admin</div>} />
+
+              {/* Sysadmin-only routes (nested inside Layout) */}
+              <Route element={<SysadminRoute />}>
+                <Route path="owners" element={<Owners />} />
+              </Route>
             </Route>
           </Route>
 
