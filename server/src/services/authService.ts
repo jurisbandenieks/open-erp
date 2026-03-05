@@ -8,8 +8,17 @@ export type { AuthPayload };
 
 const TOKEN_CACHE_TTL = 60; // seconds
 
-export const validateToken = async (token: string): Promise<AuthPayload> => {
-  const cacheKey = `token:${token}`;
+export const validateToken = async (
+  token: string,
+  requiredRoles?: string[]
+): Promise<AuthPayload> => {
+  // Use a cache key that incorporates required roles so role-scoped
+  // and role-free lookups don't collide.
+  const rolesSuffix =
+    requiredRoles && requiredRoles.length > 0
+      ? `:${requiredRoles.sort().join(",")}`
+      : "";
+  const cacheKey = `token:${token}${rolesSuffix}`;
 
   // Check Redis cache first
   const cached = await redisClient.get(cacheKey);
@@ -17,10 +26,12 @@ export const validateToken = async (token: string): Promise<AuthPayload> => {
     return JSON.parse(cached) as AuthPayload;
   }
 
-  // Validate with auth service
+  // Validate (and optionally authorise) with the auth service
+  const body =
+    requiredRoles && requiredRoles.length > 0 ? { requiredRoles } : {};
   const { data } = await axios.post<AuthPayload>(
     `${env.AUTH_SERVICE_URL}/validate`,
-    {},
+    body,
     {
       headers: { Authorization: `Bearer ${token}` },
       timeout: 5000

@@ -60,7 +60,9 @@ router.post(
 /**
  * POST /validate
  * Authorization: Bearer <token>
+ * Body (optional): { requiredRoles: string[] }
  * Returns AuthPayload — called by the api service on every authenticated request.
+ * If requiredRoles is provided, returns 403 when the token holder lacks all of them.
  */
 router.post(
   "/validate",
@@ -73,6 +75,17 @@ router.post(
         );
       }
       const payload = await validateToken(authHeader.slice(7));
+
+      const { requiredRoles } = req.body as { requiredRoles?: string[] };
+      if (requiredRoles && requiredRoles.length > 0) {
+        const hasRole = requiredRoles.some((role) =>
+          payload.roles.includes(role)
+        );
+        if (!hasRole) {
+          return next(new AppError("Insufficient permissions", 403));
+        }
+      }
+
       res.json(payload);
     } catch (err) {
       next(err);

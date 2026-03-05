@@ -4,7 +4,7 @@
   "description": "Open ERP REST API",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --poll -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "ts-node -r tsconfig-paths/register -r dotenv/config src/seeds/seed.ts",

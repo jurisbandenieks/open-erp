@@ -16,13 +16,18 @@ export const authenticate = async (
   _res: Response,
   next: NextFunction
 ) => {
+  console.log("Authenticating request:", req.headers);
   const authHeader = req.headers.authorization;
+
+  console.log("Authenticating token:", authHeader);
 
   if (!authHeader?.startsWith("Bearer ")) {
     return next(new AppError("Missing or invalid authorization header", 401));
   }
 
   const token = authHeader.slice(7);
+
+  console.log("Extracted token:", token);
 
   try {
     req.user = await validateToken(token);
@@ -34,14 +39,20 @@ export const authenticate = async (
 };
 
 export const authorize = (...roles: string[]) => {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user) {
+  console.log("Authorizing with required roles:", roles);
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
       return next(new AppError("Unauthenticated", 401));
     }
-    const hasRole = roles.some((role) => req.user!.roles.includes(role));
-    if (!hasRole) {
-      return next(new AppError("Insufficient permissions", 403));
+    const token = authHeader.slice(7);
+    try {
+      // Re-validate token against auth service and check required roles there
+      req.user = await validateToken(token, roles);
+      next();
+    } catch (error) {
+      console.log("Authorization failed:", error);
+      next(error);
     }
-    next();
   };
 };
