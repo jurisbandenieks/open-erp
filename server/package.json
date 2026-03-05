@@ -8,6 +8,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "ts-node -r tsconfig-paths/register -r dotenv/config src/seeds/seed.ts",
+    "migration:run": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:run -d src/config/database.ts",
+    "migration:revert": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:revert -d src/config/database.ts",
+    "migration:show": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:show -d src/config/database.ts",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "typecheck": "tsc --noEmit"

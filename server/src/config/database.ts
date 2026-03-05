@@ -31,7 +31,11 @@ export const AppDataSource = new DataSource({
     Holiday,
     TimeInLieu
   ],
-  migrations: ["src/migrations/**/*.ts"],
+  migrations: [
+    env.NODE_ENV === "production"
+      ? "dist/migrations/**/*.js"
+      : "src/migrations/**/*.ts"
+  ],
   subscribers: []
 });
 
@@ -39,6 +43,15 @@ export const connectDatabase = async () => {
   try {
     await AppDataSource.initialize();
     logger.info("PostgreSQL connected");
+
+    const pending = await AppDataSource.showMigrations();
+    if (pending) {
+      logger.info("Running pending migrations...");
+      await AppDataSource.runMigrations();
+      logger.info("Migrations complete");
+    } else {
+      logger.info("No pending migrations");
+    }
   } catch (error) {
     logger.error("Database connection failed:", error);
     throw error;

@@ -6,37 +6,60 @@ import {
   IconCalendar,
   IconClock,
   IconFileText,
-  IconChevronRight
+  IconChevronRight,
+  IconBuildingSkyscraper
 } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router";
 import { Footer } from "@/components/Footer/Footer";
+import { useAuth } from "@/context/AuthContext";
 
 interface NavigationProps {
   onNavigate?: () => void;
 }
 
 const menuItems = [
-  { icon: IconHome, label: "Dashboard", path: "/" },
-  { icon: IconUsers, label: "Employees", path: "/admin/employees" },
-  { icon: IconBuilding, label: "Entities", path: "/admin/entities" },
-  { icon: IconCalendar, label: "Absences", path: "/absences" },
-  { icon: IconClock, label: "Timelogs", path: "/timelogs" },
-  { icon: IconFileText, label: "Reports", path: "/admin/reports" }
+  { icon: IconHome, label: "Dashboard", path: "/", roles: null },
+  {
+    icon: IconUsers,
+    label: "Employees",
+    path: "/admin/employees",
+    roles: null
+  },
+  {
+    icon: IconBuilding,
+    label: "Entities",
+    path: "/admin/entities",
+    roles: null
+  },
+  { icon: IconCalendar, label: "Absences", path: "/absences", roles: null },
+  { icon: IconClock, label: "Timelogs", path: "/timelogs", roles: null },
+  { icon: IconFileText, label: "Reports", path: "/admin/reports", roles: null },
+  {
+    icon: IconBuildingSkyscraper,
+    label: "Owners",
+    path: "/owners",
+    roles: ["sysadmin"]
+  }
 ];
 
 export function Navigation({ onNavigate }: NavigationProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const handleNavigate = (path: string) => {
     navigate(path);
     onNavigate?.();
   };
 
+  const visibleItems = menuItems.filter(
+    (item) => !item.roles || item.roles.includes(user?.role ?? "")
+  );
+
   return (
     <>
       <AppShell.Section grow>
-        {menuItems.map((item) => (
+        {visibleItems.map((item) => (
           <NavLink
             key={item.path}
             active={location.pathname === item.path}
