@@ -14,7 +14,7 @@ export type EmploymentStatus =
 
 export interface Employee {
   id: string;
-  userId?: string; // Link to User account if applicable
+  userId?: string;
   employeeNumber: string;
   firstName: string;
   lastName: string;
@@ -26,6 +26,11 @@ export interface Employee {
   position: string;
   department: string;
   status: EmploymentStatus;
+  companyId?: string;
+
+  // Manager/managee IDs for relation management
+  managerIds: string[];
+  manageeIds: string[];
 
   // Relations
   managers: Manager[];
@@ -35,7 +40,7 @@ export interface Employee {
 
   // Additional info
   salary?: number;
-  contractType?: string; // 'full-time', 'part-time', 'contract'
+  contractType?: string;
   workingHoursPerWeek?: number;
   avatar?: string;
   address?: string;

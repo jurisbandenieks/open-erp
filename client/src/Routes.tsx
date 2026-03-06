@@ -3,6 +3,7 @@ import NotFound from "@/views/NotFound/NotFound";
 import { Timelogs } from "@/views/Timelogs/Timelogs";
 import { Owners } from "@/views/Owners/Owners";
 import { Users } from "@/views/Users/Users";
+import { Employees } from "@/views/Employees/Employees";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
@@ -24,7 +25,9 @@ const AppRoutes = () => {
             <Route path="/" element={<Layout />}>
               <Route index element={<div>Dashboard</div>} />
               <Route path="timelogs" element={<Timelogs />} />
-              <Route path="admin" element={<div>Admin</div>} />
+              <Route path="admin">
+                <Route path="employees" element={<Employees />} />
+              </Route>
 
               {/* Sysadmin-only routes (nested inside Layout) */}
               <Route element={<SysadminRoute />}>

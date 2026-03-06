@@ -13,6 +13,7 @@ const EMPLOYEE_KEYS = {
   details: () => [...EMPLOYEE_KEYS.all, "detail"] as const,
   detail: (id: string) => [...EMPLOYEE_KEYS.details(), id] as const,
   managers: (id: string) => [...EMPLOYEE_KEYS.detail(id), "managers"] as const,
+  managees: (id: string) => [...EMPLOYEE_KEYS.detail(id), "managees"] as const,
   timelogs: (id: string, filters?: Record<string, any>) =>
     [...EMPLOYEE_KEYS.detail(id), "timelogs", filters] as const,
   absences: (id: string, filters?: Record<string, any>) =>
@@ -174,6 +175,26 @@ export const useAssignManagers = () => {
       queryClient.invalidateQueries({
         queryKey: EMPLOYEE_KEYS.detail(variables.id)
       });
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.lists() });
+    }
+  });
+};
+
+// Assign managees to employee
+export const useAssignManagees = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, manageeIds }: { id: string; manageeIds: string[] }) =>
+      employeeApi.assignManagees(id, manageeIds),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: EMPLOYEE_KEYS.managees(variables.id)
+      });
+      queryClient.invalidateQueries({
+        queryKey: EMPLOYEE_KEYS.detail(variables.id)
+      });
+      queryClient.invalidateQueries({ queryKey: EMPLOYEE_KEYS.lists() });
     }
   });
 };

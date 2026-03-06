@@ -85,6 +85,21 @@ export const employeeApi = {
     return data;
   },
 
+  // Get employee's managees
+  getManagees: async (id: string) => {
+    const { data } = await axiosClient.get(`${EMPLOYEE_ENDPOINT}/${id}/managees`);
+    return data;
+  },
+
+  // Assign managees to employee
+  assignManagees: async (id: string, manageeIds: string[]) => {
+    const { data } = await axiosClient.post(
+      `${EMPLOYEE_ENDPOINT}/${id}/managees`,
+      { manageeIds }
+    );
+    return data;
+  },
+
   // Get employee's timelogs
   getTimelogs: async (
     id: string,
