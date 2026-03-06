@@ -52,8 +52,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      auth:
-        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   auth:
     build:
@@ -79,11 +82,12 @@ services:
       - JWT_SECRET=dev-secret-change-in-production
       - JWT_ACCESS_EXPIRES_IN=15m
       - JWT_REFRESH_EXPIRES_IN=7d
-      - CORS_ORIGIN=http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      api:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5001/health || exit 1"]

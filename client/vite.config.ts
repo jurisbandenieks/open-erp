@@ -19,6 +19,16 @@ export default defineConfig({
     },
     watch: {
       usePolling: true // Enable polling for file changes (useful in Docker/WSL)
+    },
+    proxy: {
+      "/api": {
+        target: "http://api:5000",
+        rewrite: (path) => path.replace(/^\/api/, "")
+      },
+      "/auth": {
+        target: "http://auth:5001",
+        rewrite: (path) => path.replace(/^\/auth/, "")
+      }
     }
   },
   resolve: {

@@ -7,6 +7,9 @@
     "dev": "ts-node-dev --respawn --transpile-only --poll -r tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "migration:run": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:run -d src/config/database.ts",
+    "migration:revert": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:revert -d src/config/database.ts",
+    "migration:show": "typeorm-ts-node-commonjs -r tsconfig-paths/register -r dotenv/config migration:show -d src/config/database.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

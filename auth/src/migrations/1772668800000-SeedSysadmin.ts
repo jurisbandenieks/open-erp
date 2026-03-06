@@ -1,5 +1,7 @@
 import type { MigrationInterface, QueryRunner } from "typeorm";
 import * as bcrypt from "bcryptjs";
+import { UserRole } from "@shared/entities/enums";
+import { env } from "../config/env";
 
 /**
  * Production migration — seeds the initial sysadmin user.
@@ -16,14 +18,14 @@ import * as bcrypt from "bcryptjs";
  */
 export class SeedSysadmin1772668800000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const email =
-      process.env.SYSADMIN_EMAIL ?? "sysadmin@openerp.local";
+    const email = env.SYSADMIN_EMAIL ?? "sysadmin@openerp.local";
 
-    const plainPassword = process.env.SYSADMIN_PASSWORD;
+    const plainPassword = env.SYSADMIN_PASSWORD;
     if (!plainPassword) {
-      throw new Error(
-        "SYSADMIN_PASSWORD env var is required to run the sysadmin seed migration"
+      console.warn(
+        "[SeedSysadmin] SYSADMIN_PASSWORD env var not set — skipping sysadmin seed"
       );
+      return;
     }
 
     const password = await bcrypt.hash(plainPassword, 12);
@@ -42,7 +44,7 @@ export class SeedSysadmin1772668800000 implements MigrationInterface {
 
     await queryRunner.query(
       `INSERT INTO users (id, email, password, "firstName", "lastName", role, status, "createdAt", "updatedAt")
-       VALUES (gen_random_uuid(), $1, $2, 'System', 'Admin', 'sysadmin', 'active', NOW(), NOW())`,
+       VALUES (gen_random_uuid(), $1, $2, 'System', 'Admin', '${UserRole.SYSADMIN}', 'active', NOW(), NOW())`,
       [email, password]
     );
 
@@ -50,11 +52,10 @@ export class SeedSysadmin1772668800000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const email =
-      process.env.SYSADMIN_EMAIL ?? "sysadmin@openerp.local";
+    const email = process.env.SYSADMIN_EMAIL ?? "sysadmin@openerp.local";
 
     await queryRunner.query(
-      `DELETE FROM users WHERE email = $1 AND role = 'sysadmin'`,
+      `DELETE FROM users WHERE email = $1 AND role = '${UserRole.SYSADMIN}'`,
       [email]
     );
 

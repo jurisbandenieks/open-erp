@@ -26,8 +26,17 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
+  SYSADMIN_EMAIL: z
+    .string()
+    .email()
+    .default(process.env.SYSADMIN_EMAIL ?? "sysadmin@openerp.local"),
+  SYSADMIN_PASSWORD: z
+    .string()
+    .min(8)
+    .default(process.env.SYSADMIN_PASSWORD ?? "Testing1!"),
+
   // CORS
-  CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  CORS_ORIGIN: z.string().default("http://localhost:3000")
 });
 
 const parsed = envSchema.safeParse(process.env);
