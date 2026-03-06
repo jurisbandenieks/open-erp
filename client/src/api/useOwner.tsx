@@ -58,7 +58,8 @@ export const useCreateOwner = (
       queryClient.invalidateQueries({ queryKey: ownerKeys.lists() });
       return options?.onSuccess?.(...args);
     },
-    ...options
+    onError: options?.onError,
+    onSettled: options?.onSettled
   });
 };
 
@@ -83,7 +84,8 @@ export const useUpdateOwner = (
       queryClient.invalidateQueries({ queryKey: ownerKeys.detail(args[1].id) });
       return options?.onSuccess?.(...args);
     },
-    ...options
+    onError: options?.onError,
+    onSettled: options?.onSettled
   });
 };
 
@@ -98,6 +100,7 @@ export const useDeleteOwner = (
       queryClient.removeQueries({ queryKey: ownerKeys.detail(args[1]) });
       return options?.onSuccess?.(...args);
     },
-    ...options
+    onError: options?.onError,
+    onSettled: options?.onSettled
   });
 };
