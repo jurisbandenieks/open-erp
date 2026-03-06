@@ -2,6 +2,7 @@ import { Routes, Route, BrowserRouter } from "react-router";
 import NotFound from "@/views/NotFound/NotFound";
 import { Timelogs } from "@/views/Timelogs/Timelogs";
 import { Owners } from "@/views/Owners/Owners";
+import { Users } from "@/views/Users/Users";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
@@ -28,6 +29,7 @@ const AppRoutes = () => {
               {/* Sysadmin-only routes (nested inside Layout) */}
               <Route element={<SysadminRoute />}>
                 <Route path="owners" element={<Owners />} />
+                <Route path="users" element={<Users />} />
               </Route>
             </Route>
           </Route>

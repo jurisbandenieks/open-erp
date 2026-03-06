@@ -39,6 +39,12 @@ const menuItems = [
     label: "Owners",
     path: "/owners",
     roles: ["sysadmin"]
+  },
+  {
+    icon: IconUsers,
+    label: "Users",
+    path: "/users",
+    roles: ["sysadmin"]
   }
 ];
 
