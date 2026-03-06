@@ -81,7 +81,37 @@ export const getUsers = async (query: ListUsersQuery) => {
     );
   }
 
-  const [data, total] = await qb.getManyAndCount();
+  const [users, total] = await qb.getManyAndCount();
+
+  // Enrich with isOwner / isManager flags using two batch lookups
+  let ownerIds = new Set<string>();
+  let managerIds = new Set<string>();
+
+  if (users.length > 0) {
+    const ids = users.map((u) => u.id);
+
+    const ownerRows = await AppDataSource.getRepository(Owner)
+      .createQueryBuilder("o")
+      .select("o.userId", "userId")
+      .where("o.userId IN (:...ids)", { ids })
+      .getRawMany<{ userId: string }>();
+    ownerIds = new Set(ownerRows.map((r) => r.userId));
+
+    const managerRows = await AppDataSource.getRepository(Employee)
+      .createQueryBuilder("emp")
+      .innerJoin("employee_managers", "em", 'em."managerId" = emp.id')
+      .select("emp.userId", "userId")
+      .where("emp.userId IN (:...ids)", { ids })
+      .getRawMany<{ userId: string }>();
+    managerIds = new Set(managerRows.map((r) => r.userId));
+  }
+
+  const data = users.map((u) => ({
+    ...u,
+    isOwner: ownerIds.has(u.id),
+    isManager: managerIds.has(u.id)
+  }));
+
   return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
 };
 

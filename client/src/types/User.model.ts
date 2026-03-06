@@ -29,6 +29,8 @@ export interface User {
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
+  isOwner: boolean;
+  isManager: boolean;
 }
 
 export interface AuthUser extends User {

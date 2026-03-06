@@ -40,17 +40,33 @@ export const getUserColumnDefs = ({
   {
     headerName: "Role",
     field: "role",
-    width: 110,
-    cellRenderer: (p: { value: string }) => (
-      <Badge
-        color={roleColorMap[p.value] ?? "gray"}
-        variant="light"
-        size="sm"
-        tt="capitalize"
-      >
-        {p.value}
-      </Badge>
-    )
+    width: 120,
+    cellRenderer: (p: { data?: User }) => {
+      if (!p.data) return null;
+      const { isOwner, isManager, role } = p.data;
+      if (isOwner)
+        return (
+          <Badge color="violet" variant="light" size="sm">
+            Owner
+          </Badge>
+        );
+      if (isManager)
+        return (
+          <Badge color="indigo" variant="light" size="sm">
+            Manager
+          </Badge>
+        );
+      return (
+        <Badge
+          color={roleColorMap[role] ?? "gray"}
+          variant="light"
+          size="sm"
+          tt="capitalize"
+        >
+          {role}
+        </Badge>
+      );
+    }
   },
   {
     headerName: "Status",
