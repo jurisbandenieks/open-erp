@@ -13,6 +13,7 @@ export const userApi = {
     role?: string;
     status?: string;
     search?: string;
+    companyId?: string;
   }): Promise<ListUsersResponse> => {
     const res = await axiosClient.get("/users", { params });
     return res.data;

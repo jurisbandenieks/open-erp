@@ -32,6 +32,7 @@ export const useUsers = (
     role?: string;
     status?: string;
     search?: string;
+    companyId?: string;
   },
   options?: Omit<UseQueryOptions<ListUsersResponse>, "queryKey" | "queryFn">
 ) => {

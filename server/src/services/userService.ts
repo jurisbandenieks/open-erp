@@ -38,7 +38,8 @@ export const listUsersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   role: z.nativeEnum(UserRole).optional(),
   status: z.nativeEnum(UserStatus).optional(),
-  search: z.string().optional()
+  search: z.string().optional(),
+  companyId: z.string().uuid().optional()
 });
 
 export type CreateUserDto = z.infer<typeof createUserSchema>;
@@ -54,13 +55,14 @@ const userRepo = () => AppDataSource.getRepository(User);
  * Password is never returned (select: false on the column).
  */
 export const getUsers = async (query: ListUsersQuery) => {
-  const { page, limit, role, status, search } = query;
+  const { page, limit, role, status, search, companyId } = query;
 
   const qb = userRepo()
     .createQueryBuilder("user")
     .skip((page - 1) * limit)
     .take(limit)
-    .orderBy("user.createdAt", "DESC");
+    .orderBy("user.createdAt", "DESC")
+    .where("user.role != :adminRole", { adminRole: UserRole.ADMIN });
 
   if (role) qb.andWhere("user.role = :role", { role });
   if (status) qb.andWhere("user.status = :status", { status });
@@ -68,6 +70,14 @@ export const getUsers = async (query: ListUsersQuery) => {
     qb.andWhere(
       "(LOWER(user.firstName) LIKE :q OR LOWER(user.lastName) LIKE :q OR LOWER(user.email) LIKE :q)",
       { q: `%${search.toLowerCase()}%` }
+    );
+  }
+  if (companyId) {
+    qb.innerJoin(
+      Employee,
+      "emp",
+      "emp.userId = user.id AND emp.companyId = :companyId",
+      { companyId }
     );
   }
 

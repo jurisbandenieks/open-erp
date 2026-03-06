@@ -1,69 +1,31 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
   Title,
   Button,
   Group,
   Stack,
-  Table,
-  Badge,
-  ActionIcon,
-  Text,
   Alert,
   Loader,
   Center,
   Paper,
-  Tooltip,
-  TextInput
+  TextInput,
+  Select
 } from "@mantine/core";
 import {
   IconPlus,
-  IconEdit,
-  IconTrash,
   IconAlertCircle,
-  IconSearch
+  IconSearch,
+  IconBuilding
 } from "@tabler/icons-react";
 import { useUsers } from "@/api/useUser";
+import { useCompanies } from "@/api/useCompany";
 import type { User } from "@/types/User.model";
+import { DataGrid } from "@/components/DataGrid/DataGrid";
+import { getUserColumnDefs, defaultUserColDef } from "./Users.columns";
 import { CreateUserModal } from "./CreateUserModal";
 import { EditUserModal } from "./EditUserModal";
 import { DeleteUserModal } from "./DeleteUserModal";
-
-function RoleBadge({ role }: { role: string }) {
-  const colorMap: Record<string, string> = {
-    admin: "blue",
-    user: "gray"
-  };
-  return (
-    <Badge
-      color={colorMap[role] ?? "gray"}
-      variant="light"
-      size="sm"
-      tt="capitalize"
-    >
-      {role}
-    </Badge>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colorMap: Record<string, string> = {
-    active: "green",
-    pending: "yellow",
-    suspended: "red",
-    inactive: "gray"
-  };
-  return (
-    <Badge
-      color={colorMap[status] ?? "gray"}
-      variant="light"
-      size="sm"
-      tt="capitalize"
-    >
-      {status}
-    </Badge>
-  );
-}
 
 export function Users() {
   const [createOpen, setCreateOpen] = useState(false);
@@ -71,12 +33,28 @@ export function Users() {
   const [deleteUser, setDeleteUser] = useState<User | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+
+  const { data: companiesData } = useCompanies();
+  const companyOptions = (companiesData ?? []).map((c) => ({
+    value: c.id,
+    label: c.name
+  }));
+
+  const params: Record<string, string> = {};
+  if (debouncedSearch) params.search = debouncedSearch;
+  if (companyId) params.companyId = companyId;
 
   const { data, isLoading, error } = useUsers(
-    debouncedSearch ? { search: debouncedSearch } : undefined
+    Object.keys(params).length ? params : undefined
   );
 
   const users = data?.data ?? [];
+
+  const columnDefs = useMemo(
+    () => getUserColumnDefs({ onEdit: setEditUser, onDelete: setDeleteUser }),
+    []
+  );
 
   return (
     <>
@@ -91,17 +69,28 @@ export function Users() {
           </Button>
         </Group>
 
-        <TextInput
-          placeholder="Search by name or email…"
-          leftSection={<IconSearch size="1rem" />}
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-          style={{ maxWidth: 320 }}
-        />
+        <Group gap="sm">
+          <TextInput
+            placeholder="Search by name or email…"
+            leftSection={<IconSearch size="1rem" />}
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            style={{ minWidth: 240 }}
+          />
+          <Select
+            placeholder="All companies"
+            leftSection={<IconBuilding size="1rem" />}
+            data={companyOptions}
+            value={companyId}
+            onChange={setCompanyId}
+            clearable
+            style={{ minWidth: 200 }}
+          />
+        </Group>
 
-        <Paper withBorder radius="md" p={0}>
+        <Paper withBorder radius="md" style={{ height: 520 }}>
           {isLoading && (
-            <Center p="xl">
+            <Center h="100%">
               <Loader size="md" />
             </Center>
           )}
@@ -118,77 +107,11 @@ export function Users() {
           )}
 
           {!isLoading && !error && (
-            <Table striped highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Name</Table.Th>
-                  <Table.Th>Email</Table.Th>
-                  <Table.Th>Role</Table.Th>
-                  <Table.Th>Status</Table.Th>
-                  <Table.Th>Verified</Table.Th>
-                  <Table.Th>Created</Table.Th>
-                  <Table.Th />
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {users.length === 0 && (
-                  <Table.Tr>
-                    <Table.Td colSpan={7}>
-                      <Text ta="center" c="dimmed" py="md" size="sm">
-                        No users found
-                      </Text>
-                    </Table.Td>
-                  </Table.Tr>
-                )}
-                {users.map((user) => (
-                  <Table.Tr key={user.id}>
-                    <Table.Td>
-                      {user.firstName} {user.lastName}
-                    </Table.Td>
-                    <Table.Td>{user.email}</Table.Td>
-                    <Table.Td>
-                      <RoleBadge role={user.role} />
-                    </Table.Td>
-                    <Table.Td>
-                      <StatusBadge status={user.status} />
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        color={user.emailVerified ? "green" : "gray"}
-                        variant="dot"
-                        size="sm"
-                      >
-                        {user.emailVerified ? "Yes" : "No"}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </Table.Td>
-                    <Table.Td>
-                      <Group gap={4} justify="flex-end">
-                        <Tooltip label="Edit">
-                          <ActionIcon
-                            variant="subtle"
-                            onClick={() => setEditUser(user)}
-                          >
-                            <IconEdit size="1rem" />
-                          </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label="Delete">
-                          <ActionIcon
-                            variant="subtle"
-                            color="red"
-                            onClick={() => setDeleteUser(user)}
-                          >
-                            <IconTrash size="1rem" />
-                          </ActionIcon>
-                        </Tooltip>
-                      </Group>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
+            <DataGrid<User>
+              rowData={users}
+              columnDefs={columnDefs}
+              defaultColDef={defaultUserColDef}
+            />
           )}
         </Paper>
       </Stack>
