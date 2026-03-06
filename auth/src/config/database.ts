@@ -2,6 +2,7 @@ import { DataSource } from "typeorm";
 import { User } from "../entities/User.entity";
 import { env } from "./env";
 import { logger } from "./logger";
+import { ensureSysadmin } from "../seeds/ensureSysadmin";
 
 export const AuthDataSource = new DataSource({
   type: "postgres",
@@ -10,29 +11,16 @@ export const AuthDataSource = new DataSource({
   database: env.DB_NAME,
   username: env.DB_USER,
   password: env.DB_PASSWORD,
-  synchronize: false, // schema is managed by the api service
+  synchronize: false,
   logging: env.NODE_ENV === "development",
-  entities: [User],
-  migrations: [
-    env.NODE_ENV === "production"
-      ? "dist/migrations/**/*.js"
-      : "src/migrations/**/*.ts"
-  ]
+  entities: [User]
 });
 
 export const connectDatabase = async () => {
   try {
     await AuthDataSource.initialize();
     logger.info("Auth service — PostgreSQL connected");
-
-    const pending = await AuthDataSource.showMigrations();
-    if (pending) {
-      logger.info("Auth service — Running pending migrations...");
-      await AuthDataSource.runMigrations();
-      logger.info("Auth service — Migrations complete");
-    } else {
-      logger.info("Auth service — No pending migrations");
-    }
+    await ensureSysadmin();
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     logger.error("Auth service — Database connection failed:", error);
