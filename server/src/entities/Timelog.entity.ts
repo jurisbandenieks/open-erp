@@ -10,7 +10,6 @@ import {
 } from "typeorm";
 import { TimelogType, TimelogStatus } from "./enums";
 import type { Employee } from "./Employee.entity";
-import type { Manager } from "./Manager.entity";
 
 @Entity("timelogs")
 @Check(`("employeeId" IS NOT NULL OR "managerId" IS NOT NULL)`)
@@ -18,7 +17,7 @@ export class Timelog {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  // Owner: Employee (nullable — either employee or manager must be set)
+  // Regular employee timelog (nullable — either employee or manager must be set)
   @ManyToOne("Employee", (employee: Employee) => employee.timelogs, {
     nullable: true,
     onDelete: "CASCADE"
@@ -29,13 +28,13 @@ export class Timelog {
   @Column({ nullable: true })
   employeeId!: string | null;
 
-  // Owner: Manager (nullable — either employee or manager must be set)
-  @ManyToOne("Manager", (manager: Manager) => manager.timelogs, {
+  // Manager timelog — references an Employee who is a manager
+  @ManyToOne("Employee", (employee: Employee) => employee.managedTimelogs, {
     nullable: true,
     onDelete: "CASCADE"
   })
   @JoinColumn({ name: "managerId" })
-  manager!: Manager | null;
+  manager!: Employee | null;
 
   @Column({ nullable: true })
   managerId!: string | null;

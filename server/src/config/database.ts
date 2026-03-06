@@ -5,7 +5,6 @@ import { User } from "../entities/User.entity";
 import { Owner } from "../entities/Owner.entity";
 import { Company } from "../entities/Company.entity";
 import { Employee } from "../entities/Employee.entity";
-import { Manager } from "../entities/Manager.entity";
 import { Timelog } from "../entities/Timelog.entity";
 import { Absence } from "../entities/Absence.entity";
 import { Holiday } from "../entities/Holiday.entity";
@@ -25,7 +24,6 @@ export const AppDataSource = new DataSource({
     Owner,
     Company,
     Employee,
-    Manager,
     Timelog,
     Absence,
     Holiday,

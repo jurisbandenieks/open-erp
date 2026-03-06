@@ -8,15 +8,15 @@ import {
   ManyToMany,
   OneToOne,
   OneToMany,
-  JoinColumn
+  JoinColumn,
+  JoinTable
 } from "typeorm";
 import { EmploymentStatus, ContractType } from "./enums";
 import { User } from "./User.entity";
-import type { Company } from "./Company.entity";
-import type { Manager } from "./Manager.entity";
-import type { Timelog } from "./Timelog.entity";
-import type { Absence } from "./Absence.entity";
-import type { TimeInLieu } from "./TimeInLieu.entity";
+import { Company } from "./Company.entity";
+import { Timelog } from "./Timelog.entity";
+import { Absence } from "./Absence.entity";
+import { TimeInLieu } from "./TimeInLieu.entity";
 
 @Entity("employees")
 export class Employee {
@@ -73,27 +73,43 @@ export class Employee {
   };
 
   // Many employees → one Company
-  @ManyToOne("Company", { nullable: false, onDelete: "RESTRICT" })
+  @ManyToOne(() => Company, { nullable: false, onDelete: "RESTRICT" })
   @JoinColumn({ name: "companyId" })
   company!: Company;
 
   @Column()
   companyId!: string;
 
-  // Many employees ↔ many managers (inverse side)
-  @ManyToMany("Manager", (manager: Manager) => manager.employees)
-  managers!: Manager[];
+  // Self-referential M2M: an employee can manage other employees.
+  // Owning side — rows in "employee_managers" mean: managerId manages employeeId
+  @ManyToMany(() => Employee, (employee) => employee.managedBy, {
+    cascade: ["insert", "update"]
+  })
+  @JoinTable({
+    name: "employee_managers",
+    joinColumn: { name: "managerId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "employeeId", referencedColumnName: "id" }
+  })
+  manages!: Employee[]; // employees that this person manages
 
-  // One employee → many timelogs
-  @OneToMany("Timelog", (timelog: Timelog) => timelog.employee)
+  // Inverse side: managers of this employee
+  @ManyToMany(() => Employee, (employee) => employee.manages)
+  managedBy!: Employee[];
+
+  // One employee → many timelogs (as regular employee)
+  @OneToMany(() => Timelog, (timelog: Timelog) => timelog.employee)
   timelogs!: Timelog[];
 
+  // One employee → many timelogs (as manager)
+  @OneToMany(() => Timelog, (timelog: Timelog) => timelog.manager)
+  managedTimelogs!: Timelog[];
+
   // One employee → many absences
-  @OneToMany("Absence", (absence: Absence) => absence.employee)
+  @OneToMany(() => Absence, (absence: Absence) => absence.employee)
   absences!: Absence[];
 
   // One employee → many time-in-lieu records
-  @OneToMany("TimeInLieu", (til: TimeInLieu) => til.employee)
+  @OneToMany(() => TimeInLieu, (til: TimeInLieu) => til.employee)
   timeInLieus!: TimeInLieu[];
 
   @CreateDateColumn({ type: "timestamptz" })

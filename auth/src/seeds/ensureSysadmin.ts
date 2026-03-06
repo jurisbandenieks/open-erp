@@ -26,7 +26,7 @@ export const ensureSysadmin = async () => {
       password,
       firstName: "System",
       lastName: "Admin",
-      role: UserRole.SYSADMIN,
+      role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
       emailVerified: true
     })

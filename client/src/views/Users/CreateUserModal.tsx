@@ -28,9 +28,7 @@ interface Props {
 
 const roleOptions = [
   { value: "user", label: "User" },
-  { value: "manager", label: "Manager" },
-  { value: "admin", label: "Admin" },
-  { value: "sysadmin", label: "Sysadmin" }
+  { value: "admin", label: "Admin" }
 ];
 
 const statusOptions = [

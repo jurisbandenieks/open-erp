@@ -21,7 +21,7 @@ export function SysadminRoute({ redirectTo = "/" }: SysadminRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== "sysadmin") {
+  if (user?.role !== "admin") {
     return <Navigate to={redirectTo} replace />;
   }
 

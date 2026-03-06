@@ -38,13 +38,13 @@ const menuItems = [
     icon: IconBuildingSkyscraper,
     label: "Owners",
     path: "/owners",
-    roles: ["sysadmin"]
+    roles: ["admin"]
   },
   {
     icon: IconUsers,
     label: "Users",
     path: "/users",
-    roles: ["sysadmin"]
+    roles: ["admin"]
   }
 ];
 

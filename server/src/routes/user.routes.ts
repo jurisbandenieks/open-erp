@@ -11,7 +11,7 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize(UserRole.SYSADMIN));
+router.use(authenticate, authorize(UserRole.ADMIN));
 
 router.get("/", ...listUsers);
 router.get("/:id", getUser);

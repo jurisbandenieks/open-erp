@@ -31,11 +31,8 @@ import { DeleteUserModal } from "./DeleteUserModal";
 
 function RoleBadge({ role }: { role: string }) {
   const colorMap: Record<string, string> = {
-    sysadmin: "violet",
     admin: "blue",
-    manager: "teal",
-    user: "gray",
-    viewer: "gray"
+    user: "gray"
   };
   return (
     <Badge

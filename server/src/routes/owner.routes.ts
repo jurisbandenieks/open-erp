@@ -11,8 +11,8 @@ import {
 
 const router = Router();
 
-// All owner routes require authentication + sysadmin role
-router.use(authenticate, authorize(UserRole.SYSADMIN));
+// All owner routes require authentication + admin role
+router.use(authenticate, authorize(UserRole.ADMIN));
 
 router.get("/", listOwners);
 router.get("/:id", getOwner);

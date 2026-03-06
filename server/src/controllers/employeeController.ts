@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { getEmployeesByCompanyViaManagers } from "../services/employeeService";
+import { getEmployeesByCompany as fetchEmployeesByCompany } from "../services/employeeService";
 
 export const listEmployees = (_req: Request, res: Response) => {
   res.json({ success: true, data: [], message: "Get all employees" });
@@ -11,9 +11,7 @@ export const getEmployeesByCompany = async (
   next: NextFunction
 ) => {
   try {
-    const employees = await getEmployeesByCompanyViaManagers(
-      req.params.companyId
-    );
+    const employees = await fetchEmployeesByCompany(req.params.companyId);
     res.json({ success: true, data: employees });
   } catch (err) {
     next(err);

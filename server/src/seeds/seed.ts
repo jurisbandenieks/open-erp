@@ -12,12 +12,12 @@
 
 import "reflect-metadata";
 import * as bcrypt from "bcryptjs";
+import { Client } from "pg";
 import { AppDataSource } from "../config/database";
 import { User } from "../entities/User.entity";
 import { Owner } from "../entities/Owner.entity";
 import { Company } from "../entities/Company.entity";
 import { Employee } from "../entities/Employee.entity";
-import { Manager } from "../entities/Manager.entity";
 import { Timelog } from "../entities/Timelog.entity";
 import { Absence } from "../entities/Absence.entity";
 import { Holiday } from "../entities/Holiday.entity";
@@ -29,14 +29,13 @@ import {
   CompanyStatus,
   ContractType,
   EmploymentStatus,
-  ManagerRole,
   TimelogType,
   TimelogStatus,
   AbsenceType,
   AbsenceStatus,
   HolidayType,
   TimeInLieuStatus,
-  Country,
+  Country
 } from "../entities/enums";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -46,28 +45,37 @@ const hash = (plain: string) => bcrypt.hashSync(plain, 10);
 /** ISO date string → Date */
 const d = (iso: string) => new Date(iso);
 
+async function dropAndRecreateDatabase() {
+  // Connect to the postgres maintenance DB to drop/recreate the target DB
+  const client = new Client({
+    host: process.env.DB_HOST ?? "localhost",
+    port: Number(process.env.DB_PORT ?? 5432),
+    database: "postgres",
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD
+  });
+  const dbName = process.env.DB_NAME!;
+  try {
+    await client.connect();
+    // Terminate any existing connections so the drop doesn't hang
+    await client.query(
+      `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`,
+      [dbName]
+    );
+    await client.query(`DROP DATABASE IF EXISTS "${dbName}"`);
+    await client.query(`CREATE DATABASE "${dbName}"`);
+    console.log(`✔  Database "${dbName}" dropped and recreated`);
+  } finally {
+    await client.end();
+  }
+}
+
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 
 async function seed() {
+  await dropAndRecreateDatabase();
   await AppDataSource.initialize();
-  console.log("✔  Database connected");
-
-  // ── 1. Clear tables (safe order — children first) ────────────────────────
-  await AppDataSource.query(`
-    TRUNCATE TABLE
-      time_in_lieus,
-      absences,
-      timelogs,
-      manager_employees,
-      employees,
-      managers,
-      companies,
-      owners,
-      users,
-      holidays
-    RESTART IDENTITY CASCADE;
-  `);
-  console.log("✔  Tables cleared");
+  console.log("✔  Database connected and schema synchronised");
 
   const password = hash("Password123!");
 
@@ -85,7 +93,7 @@ async function seed() {
     country: Country.US,
     role: UserRole.ADMIN,
     status: UserStatus.ACTIVE,
-    emailVerified: true,
+    emailVerified: true
   });
 
   const ownerUser = userRepo.create({
@@ -98,7 +106,7 @@ async function seed() {
     country: Country.US,
     role: UserRole.USER,
     status: UserStatus.ACTIVE,
-    emailVerified: true,
+    emailVerified: true
   });
 
   const managerUser1 = userRepo.create({
@@ -109,9 +117,9 @@ async function seed() {
     phoneNumber: "+44-20-7946-0001",
     address: "10 Downing Lane, London",
     country: Country.GB,
-    role: UserRole.MANAGER,
+    role: UserRole.USER,
     status: UserStatus.ACTIVE,
-    emailVerified: true,
+    emailVerified: true
   });
 
   const managerUser2 = userRepo.create({
@@ -122,9 +130,9 @@ async function seed() {
     phoneNumber: "+44-20-7946-0002",
     address: "22 Baker Road, Manchester",
     country: Country.GB,
-    role: UserRole.MANAGER,
+    role: UserRole.USER,
     status: UserStatus.ACTIVE,
-    emailVerified: true,
+    emailVerified: true
   });
 
   const empUsers = [
@@ -138,7 +146,7 @@ async function seed() {
       country: Country.DE,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
-      emailVerified: true,
+      emailVerified: true
     }),
     userRepo.create({
       email: "emp2@openerp.dev",
@@ -150,7 +158,7 @@ async function seed() {
       country: Country.IT,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
-      emailVerified: true,
+      emailVerified: true
     }),
     userRepo.create({
       email: "emp3@openerp.dev",
@@ -162,7 +170,7 @@ async function seed() {
       country: Country.SE,
       role: UserRole.USER,
       status: UserStatus.ACTIVE,
-      emailVerified: true,
+      emailVerified: true
     }),
     userRepo.create({
       email: "emp4@openerp.dev",
@@ -174,11 +182,17 @@ async function seed() {
       country: Country.ES,
       role: UserRole.USER,
       status: UserStatus.PENDING,
-      emailVerified: false,
-    }),
+      emailVerified: false
+    })
   ];
 
-  await userRepo.save([adminUser, ownerUser, managerUser1, managerUser2, ...empUsers]);
+  await userRepo.save([
+    adminUser,
+    ownerUser,
+    managerUser1,
+    managerUser2,
+    ...empUsers
+  ]);
   console.log("✔  Users seeded (8)");
 
   // ── 3. Owner ──────────────────────────────────────────────────────────────
@@ -190,7 +204,7 @@ async function seed() {
     status: OwnerStatus.ACTIVE,
     displayName: "Hartwell Enterprises LLC",
     taxId: "EIN-12-3456789",
-    metadata: { tier: "enterprise", onboardedAt: "2022-01-15" },
+    metadata: { tier: "enterprise", onboardedAt: "2022-01-15" }
   });
 
   await ownerRepo.save(owner);
@@ -214,7 +228,7 @@ async function seed() {
     city: "New York",
     country: Country.US,
     currency: "USD",
-    foundedAt: d("2022-03-01"),
+    foundedAt: d("2022-03-01")
   });
 
   await companyRepo.save(company);
@@ -239,8 +253,8 @@ async function seed() {
       emergencyContact: {
         name: "Hans Müller",
         relationship: "Spouse",
-        phoneNumber: "+49-30-9999-0001",
-      },
+        phoneNumber: "+49-30-9999-0001"
+      }
     },
     {
       userId: empUsers[1].id,
@@ -256,8 +270,8 @@ async function seed() {
       emergencyContact: {
         name: "Maria Rossi",
         relationship: "Mother",
-        phoneNumber: "+39-06-9999-0002",
-      },
+        phoneNumber: "+39-06-9999-0002"
+      }
     },
     {
       userId: empUsers[2].id,
@@ -273,8 +287,8 @@ async function seed() {
       emergencyContact: {
         name: "Erik Johansson",
         relationship: "Father",
-        phoneNumber: "+46-8-9999-0003",
-      },
+        phoneNumber: "+46-8-9999-0003"
+      }
     },
     {
       userId: empUsers[3].id,
@@ -290,40 +304,60 @@ async function seed() {
       emergencyContact: {
         name: "Isabel García",
         relationship: "Sister",
-        phoneNumber: "+34-91-9999-0004",
-      },
-    },
+        phoneNumber: "+34-91-9999-0004"
+      }
+    }
   ]);
 
   await empRepo.save(employees);
   console.log("✔  Employees seeded (4)");
 
-  // ── 6. Managers ───────────────────────────────────────────────────────────
+  // ── 6. Manager-employees (employees who manage others) ───────────────────
 
-  const managerRepo = AppDataSource.getRepository(Manager);
+  const [managerEmp1, managerEmp2] = await empRepo.save(
+    empRepo.create([
+      {
+        userId: managerUser1.id,
+        companyId: company.id,
+        employeeNumber: "EMP-M001",
+        hireDate: d("2021-03-01"),
+        position: "Engineering Manager",
+        department: "Engineering",
+        status: EmploymentStatus.ACTIVE,
+        contractType: ContractType.FULL_TIME,
+        salary: 110000,
+        workingHoursPerWeek: 40,
+        emergencyContact: {
+          name: "Tom Spencer",
+          relationship: "Spouse",
+          phoneNumber: "+44-20-9999-0011"
+        }
+      },
+      {
+        userId: managerUser2.id,
+        companyId: company.id,
+        employeeNumber: "EMP-M002",
+        hireDate: d("2021-06-15"),
+        position: "Product & QA Manager",
+        department: "Product",
+        status: EmploymentStatus.ACTIVE,
+        contractType: ContractType.FULL_TIME,
+        salary: 105000,
+        workingHoursPerWeek: 40,
+        emergencyContact: {
+          name: "Lisa Tanner",
+          relationship: "Spouse",
+          phoneNumber: "+44-20-9999-0012"
+        }
+      }
+    ])
+  );
 
-  const manager1 = managerRepo.create({
-    userId: managerUser1.id,
-    companyId: company.id,
-    role: ManagerRole.PRIMARY,
-    position: "Engineering Manager",
-    department: "Engineering",
-    isActive: true,
-    employees: [employees[0], employees[1]],
-  });
-
-  const manager2 = managerRepo.create({
-    userId: managerUser2.id,
-    companyId: company.id,
-    role: ManagerRole.PROJECT_MANAGER,
-    position: "Product & QA Manager",
-    department: "Product",
-    isActive: true,
-    employees: [employees[2], employees[3]],
-  });
-
-  await managerRepo.save([manager1, manager2]);
-  console.log("✔  Managers seeded (2) with employee relations");
+  // Establish manages relations (self-referential M2M)
+  managerEmp1.manages = [employees[0], employees[1]];
+  managerEmp2.manages = [employees[2], employees[3]];
+  await empRepo.save([managerEmp1, managerEmp2]);
+  console.log("✔  Manager-employees seeded (2) with manages relations");
 
   // ── 7. Timelogs ───────────────────────────────────────────────────────────
 
@@ -340,11 +374,11 @@ async function seed() {
       description: "Sprint planning + feature development",
       isRemote: true,
       approved: true,
-      approvedBy: manager1.id,
+      approvedBy: managerEmp1.id,
       approvedAt: d("2026-02-25T09:00:00Z"),
       billable: true,
       billableHours: 8,
-      hourlyRate: 95,
+      hourlyRate: 95
     },
     {
       employeeId: employees[0].id,
@@ -356,11 +390,11 @@ async function seed() {
       isRemote: false,
       location: "HQ - Engineering Floor",
       approved: true,
-      approvedBy: manager1.id,
+      approvedBy: managerEmp1.id,
       approvedAt: d("2026-02-26T10:00:00Z"),
       billable: true,
       billableHours: 9.5,
-      hourlyRate: 95,
+      hourlyRate: 95
     },
     {
       employeeId: employees[0].id,
@@ -370,7 +404,7 @@ async function seed() {
       status: TimelogStatus.SUBMITTED,
       description: "Code review and PR merges",
       isRemote: true,
-      approved: false,
+      approved: false
     },
     // Employee 2
     {
@@ -383,11 +417,11 @@ async function seed() {
       isRemote: false,
       location: "HQ - Engineering Floor",
       approved: true,
-      approvedBy: manager1.id,
+      approvedBy: managerEmp1.id,
       approvedAt: d("2026-02-25T09:30:00Z"),
       billable: true,
       billableHours: 8,
-      hourlyRate: 85,
+      hourlyRate: 85
     },
     {
       employeeId: employees[1].id,
@@ -398,9 +432,9 @@ async function seed() {
       description: "Sick — half day",
       isRemote: false,
       approved: true,
-      approvedBy: manager1.id,
+      approvedBy: managerEmp1.id,
       approvedAt: d("2026-02-26T08:00:00Z"),
-      billable: false,
+      billable: false
     },
     // Employee 4 — draft
     {
@@ -411,11 +445,11 @@ async function seed() {
       status: TimelogStatus.DRAFT,
       description: "Test case writing for auth module",
       isRemote: true,
-      approved: false,
+      approved: false
     },
-    // Manager 1 log
+    // Manager 1 timelog (Alice — as a manager)
     {
-      managerId: manager1.id,
+      managerId: managerEmp1.id,
       date: d("2026-02-24"),
       totalHours: 8,
       type: TimelogType.STANDARD,
@@ -426,8 +460,8 @@ async function seed() {
       approved: true,
       approvedBy: adminUser.id,
       approvedAt: d("2026-02-25T11:00:00Z"),
-      billable: false,
-    },
+      billable: false
+    }
   ]);
 
   await timelogRepo.save(timelogs);
@@ -449,8 +483,8 @@ async function seed() {
       totalHours: 520,
       notes: "Standard 13-week maternity leave",
       requestedAt: d("2025-11-01T10:00:00Z"),
-      reviewedBy: manager2.id,
-      reviewedAt: d("2025-11-05T14:00:00Z"),
+      reviewedBy: managerEmp2.id,
+      reviewedAt: d("2025-11-05T14:00:00Z")
     },
     // Employee 1 — approved vacation
     {
@@ -463,8 +497,8 @@ async function seed() {
       totalHours: 40,
       notes: "Spring holiday",
       requestedAt: d("2026-02-15T09:00:00Z"),
-      reviewedBy: manager1.id,
-      reviewedAt: d("2026-02-16T10:00:00Z"),
+      reviewedBy: managerEmp1.id,
+      reviewedAt: d("2026-02-16T10:00:00Z")
     },
     // Employee 2 — pending sick leave
     {
@@ -476,7 +510,7 @@ async function seed() {
       totalDays: 2,
       totalHours: 16,
       notes: "Flu — doctor note attached",
-      requestedAt: d("2026-03-03T07:30:00Z"),
+      requestedAt: d("2026-03-03T07:30:00Z")
     },
     // Employee 4 — time in lieu (linked later)
     {
@@ -488,8 +522,8 @@ async function seed() {
       totalDays: 1,
       totalHours: 7.5,
       notes: "Using overtime earned from February sprint",
-      requestedAt: d("2026-03-01T08:00:00Z"),
-    },
+      requestedAt: d("2026-03-01T08:00:00Z")
+    }
   ]);
 
   await absenceRepo.save(absences);
@@ -510,9 +544,9 @@ async function seed() {
     usedDate: d("2026-03-10"),
     absenceId: absences[3].id,
     expiryDate: d("2026-08-20"),
-    approvedBy: manager2.id,
+    approvedBy: managerEmp2.id,
     approvedAt: d("2026-03-01T12:00:00Z"),
-    notes: "Approved during Q1 review",
+    notes: "Approved during Q1 review"
   });
 
   // Employee 1 — banked overtime, not yet used
@@ -524,9 +558,9 @@ async function seed() {
     status: TimeInLieuStatus.APPROVED,
     hoursUsed: 0,
     expiryDate: d("2026-08-25"),
-    approvedBy: manager1.id,
+    approvedBy: managerEmp1.id,
     approvedAt: d("2026-02-26T09:00:00Z"),
-    notes: "Available to use before August",
+    notes: "Available to use before August"
   });
 
   await tilRepo.save([til1, til2]);
@@ -545,7 +579,7 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: adminUser.id,
+      createdBy: adminUser.id
     },
     {
       name: "Independence Day",
@@ -555,7 +589,7 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: adminUser.id,
+      createdBy: adminUser.id
     },
     {
       name: "Thanksgiving Day",
@@ -565,7 +599,7 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: adminUser.id,
+      createdBy: adminUser.id
     },
     {
       name: "Christmas Day",
@@ -575,7 +609,7 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: adminUser.id,
+      createdBy: adminUser.id
     },
     // UK holidays for British managers
     {
@@ -587,7 +621,7 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: adminUser.id,
+      createdBy: adminUser.id
     },
     // Company-specific holiday
     {
@@ -599,8 +633,8 @@ async function seed() {
       isRecurring: true,
       isObserved: true,
       isPaid: true,
-      createdBy: ownerUser.id,
-    },
+      createdBy: ownerUser.id
+    }
   ]);
 
   await holidayRepo.save(holidays);

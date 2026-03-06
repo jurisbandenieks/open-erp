@@ -1,11 +1,8 @@
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 export enum UserRole {
-  SYSADMIN = "sysadmin",
   ADMIN = "admin",
-  USER = "user",
-  MANAGER = "manager",
-  VIEWER = "viewer"
+  USER = "user"
 }
 
 export enum UserStatus {
@@ -46,16 +43,6 @@ export enum ContractType {
   CONTRACT = "contract",
   INTERN = "intern",
   FREELANCE = "freelance"
-}
-
-// ─── Manager ──────────────────────────────────────────────────────────────────
-
-export enum ManagerRole {
-  PRIMARY = "primary",
-  SECONDARY = "secondary",
-  TECHNICAL_LEAD = "technical_lead",
-  ACCOUNT_MANAGER = "account_manager",
-  PROJECT_MANAGER = "project_manager"
 }
 
 // ─── Timelog ─────────────────────────────────────────────────────────────────

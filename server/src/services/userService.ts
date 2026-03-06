@@ -3,7 +3,6 @@ import * as bcrypt from "bcryptjs";
 import { AppDataSource } from "../config/database";
 import { User } from "../entities/User.entity";
 import { Employee } from "../entities/Employee.entity";
-import { Manager } from "../entities/Manager.entity";
 import { Owner } from "../entities/Owner.entity";
 import { UserRole, UserStatus, Country } from "../entities/enums";
 import { AppError } from "../middleware/errorHandler";
@@ -77,24 +76,18 @@ export const getUsers = async (query: ListUsersQuery) => {
 };
 
 /**
- * Single user — fully populated with employee, manager and owner profiles.
+ * Single user — fully populated with employee and owner profiles.
  */
 export const getUserById = async (id: string) => {
   const user = await userRepo().findOne({ where: { id } });
   if (!user) throw new AppError(`User ${id} not found`, 404);
 
-  // Run all three profile queries in parallel
-  const [employee, manager, owner] = await Promise.all([
+  const [employee, owner] = await Promise.all([
     AppDataSource.getRepository(Employee)
       .createQueryBuilder("emp")
       .leftJoinAndSelect("emp.company", "empCompany")
+      .leftJoinAndSelect("emp.manages", "manages")
       .where("emp.userId = :id", { id })
-      .getOne(),
-
-    AppDataSource.getRepository(Manager)
-      .createQueryBuilder("mgr")
-      .leftJoinAndSelect("mgr.company", "mgrCompany")
-      .where("mgr.userId = :id", { id })
       .getOne(),
 
     AppDataSource.getRepository(Owner)
@@ -107,7 +100,6 @@ export const getUserById = async (id: string) => {
   return {
     ...user,
     employee: employee ?? null,
-    manager: manager ?? null,
     owner: owner ?? null
   };
 };
