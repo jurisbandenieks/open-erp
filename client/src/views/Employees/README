@@ -1,0 +1,15 @@
+Employees page is visible by the site Admin and Managers of Employees and Owners.
+Site admin can view all employees by swithing in between companies they are assigned in the dropdown filter.
+Managers can see all the employees asigned to the same company they are.
+Owners can view employees by providing company from the dropdown filter. Owner can have only options of the companies they are assigned but system admin can see all companies.
+
+Employee table
+Full name
+Email
+Employee number
+Department
+Possition
+Status
+Managers (with tooltip to show all the options)
+Managees (with tooltip to show all the options)
+Actions (Deactivate and Manage relations)
