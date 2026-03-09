@@ -1,0 +1,7 @@
+Application type set in seperate files base on
+
+1. Base model
+2. Form model
+3. Read model
+4. Update model
+5. Create model
