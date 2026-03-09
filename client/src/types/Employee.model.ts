@@ -32,6 +32,10 @@ export interface Employee {
   managerIds: string[];
   manageeIds: string[];
 
+  // Manager/managee display names for tooltips
+  managerNames: string[];
+  manageeNames: string[];
+
   // Relations
   managers: Manager[];
   timelogs: Timelog[];
@@ -64,6 +68,7 @@ export interface CreateEmployeeData {
   hireDate: string;
   position: string;
   department: string;
+  companyId: string;
   managerIds?: string[];
   salary?: number;
   contractType?: string;

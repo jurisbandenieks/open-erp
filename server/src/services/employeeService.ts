@@ -86,6 +86,14 @@ const toDto = (emp: Employee) => ({
   companyId: emp.companyId,
   managerIds: emp.managedBy?.map((m) => m.id) ?? [],
   manageeIds: emp.manages?.map((m) => m.id) ?? [],
+  managerNames:
+    emp.managedBy?.map((m) =>
+      `${m.user?.firstName ?? ""} ${m.user?.lastName ?? ""}`.trim()
+    ) ?? [],
+  manageeNames:
+    emp.manages?.map((m) =>
+      `${m.user?.firstName ?? ""} ${m.user?.lastName ?? ""}`.trim()
+    ) ?? [],
   createdAt: emp.createdAt,
   updatedAt: emp.updatedAt
 });
@@ -98,6 +106,10 @@ export const listEmployees = async (query: ListEmployeesQuery) => {
   const qb = employeeRepo()
     .createQueryBuilder("emp")
     .leftJoinAndSelect("emp.user", "user")
+    .leftJoinAndSelect("emp.managedBy", "managedBy")
+    .leftJoinAndSelect("managedBy.user", "managerUser")
+    .leftJoinAndSelect("emp.manages", "manages")
+    .leftJoinAndSelect("manages.user", "managedUser")
     .skip((page - 1) * limit)
     .take(limit)
     .orderBy("user.lastName", "ASC")

@@ -19,7 +19,8 @@ export const ownerKeys = {
   lists: () => [...ownerKeys.all, "list"] as const,
   list: () => [...ownerKeys.lists()] as const,
   details: () => [...ownerKeys.all, "detail"] as const,
-  detail: (id: string) => [...ownerKeys.details(), id] as const
+  detail: (id: string) => [...ownerKeys.details(), id] as const,
+  me: () => [...ownerKeys.all, "me"] as const
 };
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -43,6 +44,14 @@ export const useOwner = (
     queryFn: () => ownerApi.get(id),
     enabled: !!id,
     ...options
+  });
+};
+
+export const useMyOwner = () => {
+  return useQuery({
+    queryKey: ownerKeys.me(),
+    queryFn: () => ownerApi.me(),
+    staleTime: 60_000
   });
 };
 

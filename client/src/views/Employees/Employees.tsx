@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import {
   Title,
@@ -9,10 +9,14 @@ import {
   Loader,
   Center,
   Paper,
-  TextInput
+  TextInput,
+  Select
 } from "@mantine/core";
 import { IconPlus, IconAlertCircle, IconSearch } from "@tabler/icons-react";
-import { useEmployees, useDeleteEmployee } from "@/api/useEmployee";
+import { useEmployees, usePatchEmployee } from "@/api/useEmployee";
+import { useMyCompanies } from "@/api/useCompany";
+import { useMyOwner } from "@/api/useOwner";
+import { useAuth } from "@/context/AuthContext";
 import type { Employee } from "@/types/Employee.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
@@ -20,27 +24,42 @@ import {
   defaultEmployeeColDef
 } from "./Employees.columns";
 import { ManageRelationsModal } from "./ManageRelationsModal";
+import { CreateEmployeeModal } from "./CreateEmployeeModal";
 
 export function Employees() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [relationsEmployee, setRelationsEmployee] = useState<Employee | null>(
     null
   );
+  const [createOpen, setCreateOpen] = useState(false);
 
-  const { data, isLoading, error } = useEmployees(
-    debouncedSearch ? { search: debouncedSearch } : undefined
-  );
+  const { user } = useAuth();
+  const { data: myCompanies = [] } = useMyCompanies();
+  const { data: myOwner } = useMyOwner();
 
-  const deleteEmployee = useDeleteEmployee();
+  const isOwner = !!myOwner;
 
-  const handleDelete = (employee: Employee) => {
+  // Auto-select when the user has exactly one company
+  useEffect(() => {
+    if (myCompanies.length === 1) {
+      setCompanyId(myCompanies[0].id);
+    }
+  }, [myCompanies]);
+
+  const { data, isLoading, error } = useEmployees({
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    ...(companyId ? { companyId } : {})
+  });
+
+  const patchEmployee = usePatchEmployee();
+
+  const handleDeactivate = (employee: Employee) => {
     if (
-      window.confirm(
-        `Remove ${employee.firstName} ${employee.lastName}? This cannot be undone.`
-      )
+      window.confirm(`Deactivate ${employee.firstName} ${employee.lastName}?`)
     ) {
-      deleteEmployee.mutate(employee.id);
+      patchEmployee.mutate({ id: employee.id, data: { status: "inactive" } });
     }
   };
 
@@ -48,30 +67,53 @@ export function Employees() {
     () =>
       getEmployeeColumnDefs({
         onManageRelations: setRelationsEmployee,
-        onDelete: handleDelete
+        onDeactivate: handleDeactivate
       }),
     []
   );
 
   const employees = data?.data ?? [];
 
+  const companyOptions = myCompanies.map((c) => ({
+    value: c.id,
+    label: c.name
+  }));
+  const showCompanyFilter = myCompanies.length > 1;
+
   return (
     <>
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={2}>Employees</Title>
-          <Button leftSection={<IconPlus size="1rem" />} disabled>
-            New Employee
-          </Button>
+          {isOwner && (
+            <Button
+              leftSection={<IconPlus size="1rem" />}
+              onClick={() => setCreateOpen(true)}
+            >
+              New Employee
+            </Button>
+          )}
         </Group>
 
-        <TextInput
-          placeholder="Search by name, email, position, department…"
-          leftSection={<IconSearch size="1rem" />}
-          value={search}
-          onChange={(e) => setSearch(e.currentTarget.value)}
-          style={{ maxWidth: 360 }}
-        />
+        <Group gap="sm" align="flex-end">
+          <TextInput
+            placeholder="Search by name, email, position, department…"
+            leftSection={<IconSearch size="1rem" />}
+            value={search}
+            onChange={(e) => setSearch(e.currentTarget.value)}
+            style={{ maxWidth: 360 }}
+          />
+          {showCompanyFilter && (
+            <Select
+              placeholder="All companies"
+              data={companyOptions}
+              value={companyId}
+              onChange={setCompanyId}
+              clearable={user?.role === "admin"}
+              style={{ minWidth: 200 }}
+            />
+          )}
+        </Group>
 
         <Paper withBorder radius="md" style={{ height: 560 }}>
           {isLoading && (
@@ -104,6 +146,13 @@ export function Employees() {
       <ManageRelationsModal
         employee={relationsEmployee}
         onClose={() => setRelationsEmployee(null)}
+      />
+
+      <CreateEmployeeModal
+        opened={createOpen}
+        onClose={() => setCreateOpen(false)}
+        companies={myCompanies}
+        defaultCompanyId={companyId}
       />
     </>
   );

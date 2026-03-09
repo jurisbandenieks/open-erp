@@ -6,13 +6,19 @@ import {
   getOwner,
   createOwnerHandler,
   updateOwnerHandler,
-  removeOwner
+  removeOwner,
+  getMyOwner
 } from "../controllers/ownerController";
 
 const router = Router();
 
-// All owner routes require authentication + admin role
-router.use(authenticate, authorize(UserRole.ADMIN));
+router.use(authenticate);
+
+// Any authenticated user can check if they are an owner
+router.get("/me", getMyOwner);
+
+// All remaining owner routes require admin role
+router.use(authorize(UserRole.ADMIN));
 
 router.get("/", listOwners);
 router.get("/:id", getOwner);

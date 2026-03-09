@@ -1,12 +1,16 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../middleware/authenticate";
 import { UserRole } from "../entities/enums";
-import { listCompanies } from "../controllers/companyController";
+import {
+  listCompanies,
+  getMyCompanies
+} from "../controllers/companyController";
 
 const router = Router();
 
-router.use(authenticate, authorize(UserRole.ADMIN));
+router.use(authenticate);
 
-router.get("/", listCompanies);
+router.get("/mine", getMyCompanies);
+router.get("/", authorize(UserRole.ADMIN), listCompanies);
 
 export default router;

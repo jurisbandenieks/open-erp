@@ -1,5 +1,5 @@
 import { Badge, ActionIcon, Group, Tooltip } from "@mantine/core";
-import { IconUsersGroup, IconTrash } from "@tabler/icons-react";
+import { IconUsersGroup, IconUserOff } from "@tabler/icons-react";
 import type { ColDef } from "ag-grid-community";
 import type { Employee } from "@/types/Employee.model";
 
@@ -12,12 +12,12 @@ const statusColorMap: Record<string, string> = {
 
 type ActionHandlers = {
   onManageRelations: (employee: Employee) => void;
-  onDelete: (employee: Employee) => void;
+  onDeactivate: (employee: Employee) => void;
 };
 
 export const getEmployeeColumnDefs = ({
   onManageRelations,
-  onDelete
+  onDeactivate
 }: ActionHandlers): ColDef<Employee>[] => [
   {
     headerName: "Name",
@@ -66,30 +66,65 @@ export const getEmployeeColumnDefs = ({
   {
     headerName: "Managers",
     field: "managerIds",
-    width: 100,
+    width: 110,
     sortable: false,
     filter: false,
-    cellRenderer: (p: { value?: string[] }) => (
-      <Badge variant="light" color="blue" size="sm">
-        {p.value?.length ?? 0}
-      </Badge>
-    )
+    cellRenderer: (p: { data?: Employee }) => {
+      const names = p.data?.managerNames ?? [];
+      const count = p.data?.managerIds?.length ?? 0;
+      return (
+        <Tooltip
+          label={names.length ? names.join(", ") : "None"}
+          disabled={count === 0}
+          withArrow
+          multiline
+          maw={260}
+        >
+          <Badge
+            variant="light"
+            color="blue"
+            size="sm"
+            style={{ cursor: count ? "default" : undefined }}
+          >
+            {count}
+          </Badge>
+        </Tooltip>
+      );
+    }
   },
   {
     headerName: "Managees",
     field: "manageeIds",
-    width: 100,
+    width: 110,
     sortable: false,
     filter: false,
-    cellRenderer: (p: { value?: string[] }) => (
-      <Badge variant="light" color="teal" size="sm">
-        {p.value?.length ?? 0}
-      </Badge>
-    )
+    cellRenderer: (p: { data?: Employee }) => {
+      const names = p.data?.manageeNames ?? [];
+      const count = p.data?.manageeIds?.length ?? 0;
+      return (
+        <Tooltip
+          label={names.length ? names.join(", ") : "None"}
+          disabled={count === 0}
+          withArrow
+          multiline
+          maw={260}
+        >
+          <Badge
+            variant="light"
+            color="teal"
+            size="sm"
+            style={{ cursor: count ? "default" : undefined }}
+          >
+            {count}
+          </Badge>
+        </Tooltip>
+      );
+    }
   },
   {
     headerName: "",
     colId: "actions",
+    minWidth: 90,
     width: 90,
     sortable: false,
     filter: false,
@@ -108,13 +143,13 @@ export const getEmployeeColumnDefs = ({
               <IconUsersGroup size="1rem" />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Delete">
+          <Tooltip label="Deactivate">
             <ActionIcon
               variant="subtle"
-              color="red"
-              onClick={() => onDelete(p.data!)}
+              color="orange"
+              onClick={() => onDeactivate(p.data!)}
             >
-              <IconTrash size="1rem" />
+              <IconUserOff size="1rem" />
             </ActionIcon>
           </Tooltip>
         </Group>

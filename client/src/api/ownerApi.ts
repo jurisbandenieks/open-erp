@@ -28,5 +28,14 @@ export const ownerApi = {
     axiosClient.put<{ data: Owner }>(`/owners/${id}`, payload).then(unwrap),
 
   remove: (id: string): Promise<void> =>
-    axiosClient.delete(`/owners/${id}`).then(() => undefined)
+    axiosClient.delete(`/owners/${id}`).then(() => undefined),
+
+  me: (): Promise<Owner | null> =>
+    axiosClient
+      .get<{ data: Owner }>("/owners/me")
+      .then((res) => res.data.data)
+      .catch((err) => {
+        if (err?.response?.status === 404) return null;
+        throw err;
+      })
 };

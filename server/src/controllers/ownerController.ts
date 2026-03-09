@@ -5,6 +5,7 @@ import {
   createOwner,
   getOwners,
   getOwnerById,
+  getOwnerByUserId,
   updateOwner,
   deleteOwner
 } from "../services/ownerService";
@@ -68,6 +69,20 @@ export const removeOwner = async (
   try {
     await deleteOwner(req.params.id);
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyOwner = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const owner = await getOwnerByUserId(req.user!.userId);
+    if (!owner) return res.status(404).json({ success: false, message: "Not an owner" });
+    res.json({ success: true, data: owner });
   } catch (err) {
     next(err);
   }

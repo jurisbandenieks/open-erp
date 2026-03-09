@@ -50,6 +50,16 @@ const ownerRepo = () => AppDataSource.getRepository(Owner);
 const userRepo = () => AppDataSource.getRepository(User);
 
 /**
+ * Get the owner record belonging to a specific userId (null if not an owner).
+ */
+export const getOwnerByUserId = async (userId: string) => {
+  return ownerRepo().findOne({
+    where: { userId },
+    relations: { user: true, companies: true }
+  });
+};
+
+/**
  * List all owners with their user data populated.
  */
 export const getOwners = async () => {

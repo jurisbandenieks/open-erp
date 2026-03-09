@@ -9,5 +9,10 @@ export const companyApi = {
   list: (): Promise<CompanyOption[]> =>
     axiosClient
       .get<{ data: CompanyOption[] }>("/companies")
+      .then((res) => res.data.data),
+
+  mine: (): Promise<CompanyOption[]> =>
+    axiosClient
+      .get<{ data: CompanyOption[] }>("/companies/mine")
       .then((res) => res.data.data)
 };
