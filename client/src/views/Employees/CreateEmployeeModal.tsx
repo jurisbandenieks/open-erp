@@ -66,7 +66,11 @@ export function CreateEmployeeModal({
     e.preventDefault();
     const companyId = form.companyId || defaultCompanyId || "";
     if (!companyId) {
-      notifications.show({ title: "Error", message: "Please select a company", color: "red" });
+      notifications.show({
+        title: "Error",
+        message: "Please select a company",
+        color: "red"
+      });
       return;
     }
     createEmployee.mutate(
@@ -116,9 +120,8 @@ export function CreateEmployeeModal({
     label: c.name
   }));
 
-  const showCompanySelect = companies.length > 1;
-  const effectiveCompanyId =
-    form.companyId || (companies.length === 1 ? companies[0].id : defaultCompanyId ?? "");
+  // Always require an explicit company selection
+  const effectiveCompanyId = form.companyId || defaultCompanyId || "";
 
   return (
     <Modal
@@ -183,17 +186,15 @@ export function CreateEmployeeModal({
             />
           </SimpleGrid>
 
-          {showCompanySelect && (
-            <Select
-              label="Company"
-              required
-              placeholder="Select company"
-              data={companyOptions}
-              value={form.companyId || null}
-              onChange={set("companyId")}
-              searchable
-            />
-          )}
+          <Select
+            label="Company"
+            required
+            placeholder="Select company"
+            data={companyOptions}
+            value={form.companyId || defaultCompanyId || null}
+            onChange={set("companyId")}
+            searchable
+          />
 
           <SimpleGrid cols={2}>
             <TextInput

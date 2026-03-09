@@ -78,14 +78,15 @@ export function Employees() {
     value: c.id,
     label: c.name
   }));
-  const showCompanyFilter = myCompanies.length > 1;
+  const isAdmin = user?.role === "admin";
+  const showCompanyFilter = isAdmin || myCompanies.length > 1;
 
   return (
     <>
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={2}>Employees</Title>
-          {isOwner && (
+          {(isOwner || isAdmin) && (
             <Button
               leftSection={<IconPlus size="1rem" />}
               onClick={() => setCreateOpen(true)}
@@ -109,7 +110,7 @@ export function Employees() {
               data={companyOptions}
               value={companyId}
               onChange={setCompanyId}
-              clearable={user?.role === "admin"}
+              clearable={isAdmin}
               style={{ minWidth: 200 }}
             />
           )}
