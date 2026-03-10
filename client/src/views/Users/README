@@ -1,0 +1,136 @@
+# Users
+
+The Users page provides a full management interface for user accounts. It is accessible
+only to **site admins** (`SysadminRoute` guard). Admins can create, edit, and permanently
+delete users, as well as filter the list by company affiliation.
+
+A user's effective role shown in the grid is derived from their relationships in the
+system — an `admin`-role user who also has an `Owner` record is displayed as **Owner**,
+and a `user`-role user linked to a manager employee record is displayed as **Manager**,
+taking precedence over the base `role` field.
+
+---
+
+## Access Control
+
+| Action      | Who        |
+| ----------- | ---------- |
+| View list   | Admin only |
+| Create user | Admin only |
+| Edit user   | Admin only |
+| Delete user | Admin only |
+
+Route `/users` is wrapped in `SysadminRoute`, which redirects non-admins to the home page.
+
+---
+
+## Data Model
+
+Defined in `client/src/types/User.model.ts`.
+
+### `User`
+
+| Field           | Type             | Notes                                                      |
+| --------------- | ---------------- | ---------------------------------------------------------- |
+| `id`            | `string`         | UUID                                                       |
+| `email`         | `string`         |                                                            |
+| `firstName`     | `string`         |                                                            |
+| `lastName`      | `string`         |                                                            |
+| `avatar`        | `string?`        |                                                            |
+| `phoneNumber`   | `string \| null` |                                                            |
+| `address`       | `string \| null` |                                                            |
+| `country`       | `string \| null` |                                                            |
+| `role`          | `string`         | `"admin"` \| `"user"`                                      |
+| `status`        | `string`         | `"active"` \| `"inactive"` \| `"suspended"` \| `"pending"` |
+| `emailVerified` | `boolean`        |                                                            |
+| `lastLoginAt`   | `string \| null` | ISO timestamp                                              |
+| `createdAt`     | `string`         |                                                            |
+| `updatedAt`     | `string`         |                                                            |
+| `isOwner`       | `boolean`        | `true` when a linked `Owner` record exists                 |
+| `isManager`     | `boolean`        | `true` when the user's employee record is a manager        |
+
+### Enums
+
+```
+UserRole:   admin | user
+UserStatus: active | inactive | suspended | pending
+```
+
+---
+
+## API
+
+### Client (`client/src/api/userApi.ts`)
+
+| Method     | Endpoint            | Description                                                              |
+| ---------- | ------------------- | ------------------------------------------------------------------------ |
+| `list()`   | `GET /users`        | Paginated list; supports `search`, `role`, `status`, `companyId` filters |
+| `get(id)`  | `GET /users/:id`    | Single user detail                                                       |
+| `create()` | `POST /users`       | Create a new user with hashed password                                   |
+| `update()` | `PUT /users/:id`    | Partial update of any editable field                                     |
+| `remove()` | `DELETE /users/:id` | Permanently delete a user                                                |
+
+### TanStack Query Hooks (`client/src/api/useUser.tsx`)
+
+| Hook                | Purpose                                           |
+| ------------------- | ------------------------------------------------- |
+| `useUsers(params?)` | Paginated, filterable user list                   |
+| `useUser(id)`       | Single user detail                                |
+| `useCreateUser()`   | Mutation; invalidates list on success             |
+| `useUpdateUser()`   | Mutation; invalidates list + detail on success    |
+| `useDeleteUser()`   | Mutation; invalidates list + removes detail cache |
+
+---
+
+## Components
+
+### `Users.tsx`
+
+Main page component. Manages modal open/close state for create, edit, and delete.
+
+- **Search**: debounced (300 ms), searches by name or email.
+- **Company filter**: dropdown populated from `useCompanies()` (admin-only endpoint
+  returning all companies); filters the user list to those associated with a given company.
+- Both filters are combined and passed as query params to `useUsers()`.
+- The **New User** button is always visible (page is admin-only).
+
+### `Users.columns.tsx`
+
+AG Grid column definitions.
+
+| Column   | Field           | Notes                                                                                  |
+| -------- | --------------- | -------------------------------------------------------------------------------------- |
+| Name     | computed        | `firstName + lastName`; flex, min 160 px                                               |
+| Email    | `email`         | Flex, min 200 px                                                                       |
+| Role     | `role`          | Badge with priority: **Owner** (violet) → **Manager** (indigo) → base role (blue/gray) |
+| Status   | `status`        | Badge: green / yellow / red / gray                                                     |
+| Verified | `emailVerified` | Dot badge: green = verified, gray = unverified                                         |
+| Created  | `createdAt`     | Formatted as locale date string                                                        |
+| Actions  | —               | Pinned right; Edit (pencil) + Delete (trash, red)                                      |
+
+### `Modals/CreateUserModal.tsx`
+
+Uses `react-hook-form`. Fields:
+
+| Field      | Required       | Default  |
+| ---------- | -------------- | -------- |
+| First name | No             | —        |
+| Last name  | No             | —        |
+| Email      | Yes            | —        |
+| Password   | Yes (≥8 chars) | —        |
+| Role       | No             | `user`   |
+| Status     | No             | `active` |
+
+### `Modals/EditUserModal.tsx`
+
+Pre-populates from the selected `User` via `useEffect`. Editable fields:
+
+- First name, Last name, Email, Phone number
+- Role (`admin` / `user`)
+- Status (`active` / `pending` / `suspended` / `inactive`)
+- Email verified (checkbox)
+
+### `Modals/DeleteUserModal.tsx`
+
+Confirmation dialog showing the user's full name and email. Deletion is **permanent**
+and irreversible. Calls `useDeleteUser()` on confirm.
