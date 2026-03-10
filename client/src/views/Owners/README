@@ -1,0 +1,55 @@
+# Owners
+
+## Overview
+
+The Owners page provides full CRUD management of Owner records. An Owner is a user with elevated (admin-level) access who can own one or more companies. Only the site Admin can access this page.
+
+## Access
+
+| Role       | Access                                      |
+| ---------- | ------------------------------------------- |
+| Admin      | Full access — create, edit, delete owners   |
+| All others | Redirected away (via `SysadminRoute` guard) |
+
+## Table Columns
+
+| Column       | Description                                                      |
+| ------------ | ---------------------------------------------------------------- |
+| Name         | Owner's first + last name (from their linked user record)        |
+| Email        | Owner's email address                                            |
+| Display Name | Optional business/public display name                            |
+| Tax ID       | Optional tax identifier                                          |
+| Status       | `active`, `suspended`, or `inactive` — shown as a coloured badge |
+| Created      | Date the owner record was created                                |
+| Actions      | **Edit** · **Delete** (pinned right, non-resizable)              |
+
+## Actions
+
+### New Owner
+
+Opens **CreateOwnerModal** — a form requiring:
+
+- First name, Last name
+- Email, Password (min 8 characters)
+- Display Name _(optional)_
+- Tax ID _(optional)_
+
+On creation a new `User` record (`role = admin`) and an `Owner` record are created atomically in a single transaction.
+
+### Edit Owner
+
+Opens **EditOwnerModal** — allows updating name, email, phone, address, display name, tax ID, and owner status.
+
+### Delete Owner
+
+Opens **DeleteOwnerModal** — a confirmation dialog. Deletion is permanent and will also remove the linked user account.
+
+## Files
+
+| File                   | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `Owners.tsx`           | Main page component — AG Grid table, modal orchestration             |
+| `Owners.columns.tsx`   | AG Grid column definitions including status badge and action buttons |
+| `CreateOwnerModal.tsx` | Form modal for creating a new owner (uses `react-hook-form`)         |
+| `EditOwnerModal.tsx`   | Form modal for editing an existing owner                             |
+| `DeleteOwnerModal.tsx` | Confirmation modal for deleting an owner                             |
