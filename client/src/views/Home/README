@@ -1,0 +1,38 @@
+# Home
+
+The Home page is the default landing page for all authenticated users (route `/`).
+It is planned to display a personalised overview dashboard, with the content varying
+by the viewer's role and relationships within the system.
+
+---
+
+## Planned Content
+
+### All users
+
+- Summary of their own account (name, role, status, last login).
+
+### Employees
+
+- Their assigned company and position.
+- Manager list — names and contact details of direct managers.
+- Managee list — names and contact details of direct reports.
+- Ability to navigate the management chain (click a manager/managee to view their
+  own manager and managee relationships in turn).
+
+### Owners
+
+- Overview of companies they own (status, employee count).
+- Quick links to the Companies and Employees admin pages.
+
+### Admins
+
+- High-level system summary: total users, companies, employees.
+- Quick links to all admin sections (Owners, Users, Companies, Employees).
+
+---
+
+## Route
+
+`/` — index route inside the authenticated `Layout`. Accessible to any logged-in user.
+No additional role guard is applied.
