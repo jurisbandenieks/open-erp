@@ -1,15 +1,72 @@
-Employees page is visible by the site Admin and Managers of Employees and Owners.
-Site admin can view all employees by swithing in between companies they are assigned in the dropdown filter.
-Managers can see all the employees asigned to the same company they are.
-Owners can view employees by providing company from the dropdown filter. Owner can have only options of the companies they are assigned but system admin can see all companies.
+# Employees
 
-Employee table
-Full name
-Email
-Employee number
-Department
-Possition
-Status
-Managers (with tooltip to show all the options)
-Managees (with tooltip to show all the options)
-Actions (Deactivate and Manage relations)
+## Overview
+
+The Employees page allows authorised users to view, filter, and manage the employee records within their accessible companies.
+
+## Access
+
+| Role  | Access                                                |
+| ----- | ----------------------------------------------------- |
+| Admin | Full access — can view employees across all companies |
+| Owner | Access limited to their own companies                 |
+
+All other roles are redirected away from this page.
+
+## Company Filter
+
+- **Admin** — a dropdown listing all companies is always visible and clearable (can reset to view all).
+- **Owner** — a dropdown listing only the companies they own is shown when they own more than one company. If they own exactly one company it is auto-selected.
+
+## Table Columns
+
+| Column     | Description                                                                     |
+| ---------- | ------------------------------------------------------------------------------- |
+| Full name  | First + last name of the employee                                               |
+| Email      | Work email address                                                              |
+| Employee # | Unique employee identifier                                                      |
+| Department | Department the employee belongs to                                              |
+| Position   | Job title / role                                                                |
+| Status     | Employment status badge (`active`, `inactive`, `on_leave`, `terminated`)        |
+| Managers   | Count badge — hover to see a tooltip listing all manager names                  |
+| Managees   | Count badge — hover to see a tooltip listing all managee names                  |
+| Actions    | **Deactivate** (sets status to `inactive`) · **Manage relations** (opens modal) |
+
+## Actions
+
+### Deactivate
+
+Sets the employee's status to `inactive` via a PATCH request. Requires confirmation before applying.
+
+### Manage Relations
+
+Opens the **ManageRelationsModal** — a tabbed modal with two tabs:
+
+- **Managers** — multi-select to assign which employees manage this person.
+- **Managees** — multi-select to assign which employees this person manages.
+
+Changes are saved in parallel and the list is invalidated on success.
+
+## Adding a New Employee
+
+The **New Employee** button is visible to Admins and Owners only. Clicking it opens the **CreateEmployeeModal** where the following fields are required:
+
+- First name, Last name
+- Email
+- Employee number
+- Hire date
+- Position, Department
+- Company (always required — selected from the accessible company list)
+
+Optional fields: phone number, contract type, salary, hours per week.
+
+A default password of `Password1!` is assigned on creation. The employee should change it on first login.
+
+## Files
+
+| File                       | Purpose                                                                 |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `Employees.tsx`            | Main page component — filter bar, AG Grid table, modal orchestration    |
+| `Employees.columns.tsx`    | AG Grid column definitions including cell renderers and action handlers |
+| `CreateEmployeeModal.tsx`  | Form modal for creating a new employee record                           |
+| `ManageRelationsModal.tsx` | Tabbed modal for assigning managers and managees                        |

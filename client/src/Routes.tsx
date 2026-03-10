@@ -9,6 +9,7 @@ import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { SysadminRoute } from "@/components/SysadminRoute/SysadminRoute";
+import { OwnerOrAdminRoute } from "@/components/OwnerOrAdminRoute/OwnerOrAdminRoute";
 import { AuthProvider } from "@/context/AuthContext";
 
 const AppRoutes = () => {
@@ -26,7 +27,9 @@ const AppRoutes = () => {
               <Route index element={<div>Dashboard</div>} />
               <Route path="timelogs" element={<Timelogs />} />
               <Route path="admin">
-                <Route path="employees" element={<Employees />} />
+                <Route element={<OwnerOrAdminRoute />}>
+                  <Route path="employees" element={<Employees />} />
+                </Route>
               </Route>
 
               {/* Sysadmin-only routes (nested inside Layout) */}
