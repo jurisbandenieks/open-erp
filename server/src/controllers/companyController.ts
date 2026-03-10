@@ -6,6 +6,17 @@ import { Owner } from "../entities/Owner.entity";
 import { Employee } from "../entities/Employee.entity";
 import { User } from "../entities/User.entity";
 import { UserRole } from "../entities/enums";
+import { validate } from "../middleware/validate";
+import {
+  listCompaniesQuerySchema,
+  createCompanySchema,
+  updateCompanySchema,
+  listCompanies as fetchCompanies,
+  getCompanyById,
+  createCompany as createComp,
+  updateCompany as updateComp,
+  getOwnerIdForUser
+} from "../services/companyService";
 
 const companyRepo = () => AppDataSource.getRepository(Company);
 
@@ -87,3 +98,119 @@ export const getMyCompanies = async (
     next(err);
   }
 };
+
+// ─── Full CRUD ────────────────────────────────────────────────────────────────
+
+export const listAllCompanies = [
+  validate(listCompaniesQuerySchema, "query"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId, roles } = req.user!;
+
+      const jwtIsAdmin = Array.isArray(roles) && roles.includes("admin");
+      let isAdmin = jwtIsAdmin;
+      if (!isAdmin) {
+        const dbUser = await AppDataSource.getRepository(User).findOne({
+          where: { id: userId },
+          select: ["role"]
+        });
+        isAdmin = dbUser?.role === UserRole.ADMIN;
+      }
+
+      // Owners can only manage their own companies
+      let ownerIds: string[] | undefined;
+      if (!isAdmin) {
+        const ownerId = await getOwnerIdForUser(userId);
+        if (!ownerId)
+          return res.status(403).json({ success: false, message: "Forbidden" });
+        ownerIds = [ownerId];
+      }
+
+      const result = await fetchCompanies(req.query as never, ownerIds);
+      res.json({ success: true, ...result });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
+
+export const getCompany = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = await getCompanyById(req.params.id);
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createCompanyHandler = [
+  validate(createCompanySchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId, roles } = req.user!;
+      const jwtIsAdmin = Array.isArray(roles) && roles.includes("admin");
+      let isAdmin = jwtIsAdmin;
+      if (!isAdmin) {
+        const dbUser = await AppDataSource.getRepository(User).findOne({
+          where: { id: userId },
+          select: ["role"]
+        });
+        isAdmin = dbUser?.role === UserRole.ADMIN;
+      }
+
+      // Owners can only create companies under themselves
+      if (!isAdmin) {
+        const ownerId = await getOwnerIdForUser(userId);
+        if (!ownerId || req.body.ownerId !== ownerId) {
+          return res
+            .status(403)
+            .json({
+              success: false,
+              message:
+                "You can only create companies under your own owner account"
+            });
+        }
+      }
+
+      const data = await createComp(req.body);
+      res.status(201).json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
+
+export const updateCompanyHandler = [
+  validate(updateCompanySchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { userId, roles } = req.user!;
+      const jwtIsAdmin = Array.isArray(roles) && roles.includes("admin");
+      let isAdmin = jwtIsAdmin;
+      if (!isAdmin) {
+        const dbUser = await AppDataSource.getRepository(User).findOne({
+          where: { id: userId },
+          select: ["role"]
+        });
+        isAdmin = dbUser?.role === UserRole.ADMIN;
+      }
+
+      if (!isAdmin) {
+        const ownerId = await getOwnerIdForUser(userId);
+        const company = await getCompanyById(req.params.id);
+        if (!ownerId || company.ownerId !== ownerId) {
+          return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+      }
+
+      const data = await updateComp(req.params.id, req.body);
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;

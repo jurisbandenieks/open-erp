@@ -1,0 +1,180 @@
+# Companies
+
+The Companies feature provides full lifecycle management of company records. Access is
+role-gated: a **site admin** can see and manage all companies, while an **owner** can
+only view and edit the companies they own. Companies cannot be deleted — they can only
+be deactivated by setting their status to `inactive`.
+
+---
+
+## Access Control
+
+| Role  | View list | Create | Edit | Deactivate |
+| ----- | --------- | ------ | ---- | ---------- |
+| Admin | All       | Yes    | Any  | Any        |
+| Owner | Own only  | Yes    | Own  | Own        |
+| Other | —         | —      | —    | —          |
+
+Route `/admin/companies` is protected by `OwnerOrAdminRoute`, which redirects
+unauthenticated or insufficiently-privileged users back to the home page.
+
+Ownership enforcement for mutations is validated **server-side** in the controller:
+the caller's `userId` is resolved to an `Owner` record and compared against the
+target company's `ownerId` before any write proceeds.
+
+---
+
+## Data Model
+
+Defined in `client/src/types/Entity.model.ts`.
+
+### `Company`
+
+| Field                | Type            | Notes                                      |
+| -------------------- | --------------- | ------------------------------------------ |
+| `id`                 | `string` (UUID) |                                            |
+| `name`               | `string`        | Required                                   |
+| `registrationNumber` | `string`        | Required, unique, immutable after creation |
+| `vatNumber`          | `string?`       |                                            |
+| `status`             | `CompanyStatus` | `active` \| `inactive` \| `suspended`      |
+| `description`        | `string?`       |                                            |
+| `website`            | `string?`       |                                            |
+| `phone`              | `string?`       |                                            |
+| `email`              | `string?`       |                                            |
+| `address`            | `string?`       |                                            |
+| `city`               | `string?`       |                                            |
+| `country`            | `string?`       | Country enum value                         |
+| `logoUrl`            | `string?`       |                                            |
+| `currency`           | `string?`       | e.g. `EUR`, `USD`                          |
+| `foundedAt`          | `string?`       | ISO date string                            |
+| `ownerId`            | `string`        | FK to `Owner`                              |
+| `ownerName`          | `string?`       | Populated by server join                   |
+| `createdAt`          | `string`        |                                            |
+| `updatedAt`          | `string`        |                                            |
+
+### `CompanyStatus`
+
+```
+active    — Company is operational
+inactive  — Deactivated; no new employees or operations
+suspended — Administratively suspended
+```
+
+---
+
+## API
+
+### Client (`client/src/api/companyApi.ts`)
+
+| Method      | Endpoint                    | Description                                                    |
+| ----------- | --------------------------- | -------------------------------------------------------------- |
+| `list()`    | `GET /companies`            | Lightweight `{ id, name }` list for dropdowns (admin only)     |
+| `mine()`    | `GET /companies/mine`       | Companies the current user is linked to (as owner or employee) |
+| `getAll()`  | `GET /companies/manage`     | Paginated full list with filters                               |
+| `getById()` | `GET /companies/manage/:id` | Single company detail                                          |
+| `create()`  | `POST /companies/manage`    | Create a new company                                           |
+| `update()`  | `PUT /companies/manage/:id` | Update company fields or status                                |
+
+### Server Routes (`server/src/routes/company.routes.ts`)
+
+All routes require authentication (`authenticate` middleware).
+
+| Method | Path                    | Guard         | Handler                |
+| ------ | ----------------------- | ------------- | ---------------------- |
+| GET    | `/companies`            | Admin only    | `listCompanies`        |
+| GET    | `/companies/mine`       | Authenticated | `getMyCompanies`       |
+| GET    | `/companies/manage`     | Authenticated | `listAllCompanies`     |
+| GET    | `/companies/manage/:id` | Authenticated | `getCompany`           |
+| POST   | `/companies/manage`     | Authenticated | `createCompanyHandler` |
+| PUT    | `/companies/manage/:id` | Authenticated | `updateCompanyHandler` |
+
+> No DELETE route exists by design — use `PUT` with `status: "inactive"` to deactivate.
+
+### TanStack Query Hooks (`client/src/api/useCompany.tsx`)
+
+| Hook                       | Purpose                                             |
+| -------------------------- | --------------------------------------------------- |
+| `useCompanies()`           | Admin dropdown list                                 |
+| `useMyCompanies()`         | Current user's associated companies (dropdowns)     |
+| `useAllCompanies(params?)` | Paginated manage list — used by the Companies page  |
+| `useCompany(id)`           | Single company detail                               |
+| `useCreateCompany()`       | Mutation; invalidates manage list + mine on success |
+| `useUpdateCompany()`       | Mutation; invalidates manage list + detail + mine   |
+
+---
+
+## Components
+
+### `Companies.tsx`
+
+Main page component at `client/src/views/Companies/Companies.tsx`.
+
+- Fetches data via `useAllCompanies` with debounced search (300 ms) and status filter.
+- Displays an AG Grid table via the shared `DataGrid<Company>` component.
+- **New Company** button is shown for admins and owners.
+- Status filter dropdown always visible (all three statuses).
+- Deactivation is confirmed with a browser `confirm()` dialog and executes
+  `useUpdateCompany` with `{ status: "inactive" }`.
+
+### `Companies.columns.tsx`
+
+AG Grid column definitions.
+
+| Column      | Field                | Notes                                                                          |
+| ----------- | -------------------- | ------------------------------------------------------------------------------ |
+| Name        | `name`               | Flex, min 180 px                                                               |
+| Reg. Number | `registrationNumber` | Fixed 150 px                                                                   |
+| VAT Number  | `vatNumber`          | Falls back to `—` if absent                                                    |
+| City        | `city`               | Falls back to `—`                                                              |
+| Country     | `country`            | Falls back to `—`                                                              |
+| Status      | `status`             | Mantine `Badge`: green / gray / red                                            |
+| Owner       | `ownerName`          | Resolved by server join; falls back to `—`                                     |
+| Created     | `createdAt`          | Formatted as locale date string                                                |
+| Actions     | —                    | Pinned right; Edit button + Deactivate button (disabled when already inactive) |
+
+### `Modals/CreateCompanyModal.tsx`
+
+Opens when clicking **New Company**.
+
+- **Required fields**: Company name, Registration number, Owner.
+- **Optional fields**: VAT number, Currency, Email, Phone, Website, Address, City,
+  Country, Founded date, Description.
+- **Owner field behaviour**:
+  - Admin: searchable `Select` populated from `useOwners()`.
+  - Owner: read-only text input pre-filled with their own name; `ownerId` is taken
+    from `myOwner.id` automatically.
+- Resets form on close or successful submission.
+
+### `Modals/EditCompanyModal.tsx`
+
+Opens when clicking the **Edit** action in the grid row.
+
+- Pre-populates all fields from the selected company via a `useEffect` on `company` prop.
+- **Editable fields**: Name, Status, VAT number, Currency, Email, Phone, Website,
+  Address, City, Country, Description.
+- `registrationNumber` is intentionally excluded — it cannot be changed after creation.
+- Status can be changed to any value (`active`, `inactive`, `suspended`).
+- Resets mutation state on close.
+
+---
+
+## Server-Side Logic (`server/src/services/companyService.ts`)
+
+- **`listCompanies(query, ownerIds?)`** — Paginated query builder; when `ownerIds` is
+  provided the result is automatically scoped to those owners (used to restrict non-admin
+  callers to their own companies).
+- **`getCompanyById(id)`** — Fetches a single company with owner + user join.
+- **`createCompany(dto)`** — Validates `registrationNumber` uniqueness and that the
+  target `Owner` record exists before inserting.
+- **`updateCompany(id, dto)`** — Partial update; all fields optional. Status changes
+  (including deactivation) are handled here.
+- **`getOwnerIdForUser(userId)`** — Resolves a `userId` to an `Owner.id`, returning
+  `null` if the user is not an owner. Used by the controller to enforce ownership.
+
+### `getMyCompanies` resolution order
+
+1. Check the JWT `roles` claim for `"admin"`.
+2. If absent (old token), fall back to a DB lookup on `User.role`.
+3. Admin → return all companies.
+4. Non-admin → union of companies owned by the user's `Owner` record and the company of
+   their `Employee` record.

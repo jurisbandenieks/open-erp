@@ -4,6 +4,7 @@ import { Timelogs } from "@/views/Timelogs/Timelogs";
 import { Owners } from "@/views/Owners/Owners";
 import { Users } from "@/views/Users/Users";
 import { Employees } from "@/views/Employees/Employees";
+import { Companies } from "@/views/Companies/Companies";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
@@ -29,6 +30,7 @@ const AppRoutes = () => {
               <Route path="admin">
                 <Route element={<OwnerOrAdminRoute />}>
                   <Route path="employees" element={<Employees />} />
+                  <Route path="companies" element={<Companies />} />
                 </Route>
               </Route>
 

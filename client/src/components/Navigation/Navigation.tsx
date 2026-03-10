@@ -27,8 +27,8 @@ const menuItems = [
   },
   {
     icon: IconBuilding,
-    label: "Entities",
-    path: "/admin/entities",
+    label: "Companies",
+    path: "/admin/companies",
     roles: null
   },
   { icon: IconCalendar, label: "Absences", path: "/absences", roles: null },

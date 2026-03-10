@@ -1,106 +1,63 @@
-import { type EntityManager } from "./Manager.model";
-
-export const EntityType = {
-  COMPANY: "company",
-  PROJECT: "project",
-  ENGAGEMENT: "engagement",
-  DEPARTMENT: "department",
-  DIVISION: "division"
-} as const;
-
-export type EntityType = (typeof EntityType)[keyof typeof EntityType];
-
-export const EntityStatus = {
+export const CompanyStatus = {
   ACTIVE: "active",
   INACTIVE: "inactive",
-  COMPLETED: "completed",
-  ON_HOLD: "on_hold",
-  CANCELLED: "cancelled"
+  SUSPENDED: "suspended"
 } as const;
 
-export type EntityStatus = (typeof EntityStatus)[keyof typeof EntityStatus];
+export type CompanyStatus = (typeof CompanyStatus)[keyof typeof CompanyStatus];
 
-export interface Entity {
+// ─── Company ─────────────────────────────────────────────────────────────────
+
+export interface Company {
   id: string;
   name: string;
-  type: EntityType;
-  status: EntityStatus;
+  registrationNumber: string;
+  vatNumber?: string;
+  status: CompanyStatus;
   description?: string;
-  code?: string; // Unique identifier/code for the entity
-
-  // Relations
-  managers: EntityManager[];
-  parentEntityId?: string; // For hierarchical structures
-  childEntities?: Entity[];
-
-  // Dates
-  startDate?: string;
-  endDate?: string;
-
-  // Financial
-  budget?: number;
-  currency?: string;
-
-  // Contact & Location
+  website?: string;
+  phone?: string;
+  email?: string;
   address?: string;
   city?: string;
   country?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-
-  // Additional metadata
-  tags?: string[];
-  customFields?: Record<string, any>;
-
+  logoUrl?: string;
+  currency?: string;
+  foundedAt?: string;
+  ownerId: string;
+  ownerName?: string; // populated by server join
   createdAt: string;
   updatedAt: string;
-  createdBy?: string;
 }
 
-export interface CreateEntityData {
+export interface CreateCompanyPayload {
   name: string;
-  type: EntityType;
+  registrationNumber: string;
+  vatNumber?: string;
   description?: string;
-  code?: string;
-  parentEntityId?: string;
-  startDate?: string;
-  endDate?: string;
-  budget?: number;
-  currency?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
   address?: string;
   city?: string;
   country?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  tags?: string[];
-  managerIds?: string[];
+  currency?: string;
+  foundedAt?: string;
+  ownerId: string;
 }
 
-export interface UpdateEntityData {
+export interface UpdateCompanyPayload {
   name?: string;
-  status?: EntityStatus;
+  vatNumber?: string;
   description?: string;
-  code?: string;
-  startDate?: string;
-  endDate?: string;
-  budget?: number;
-  currency?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
   address?: string;
   city?: string;
   country?: string;
-  phone?: string;
-  email?: string;
-  website?: string;
-  tags?: string[];
+  currency?: string;
+  status?: CompanyStatus;
 }
 
-export interface EntityFilters {
-  type?: EntityType;
-  status?: EntityStatus;
-  managerId?: string;
-  parentEntityId?: string;
-  search?: string;
-  tags?: string[];
-}
+// ─── Generic entity (projects, engagements, etc.) ────────────────────────────
