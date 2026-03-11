@@ -51,7 +51,8 @@ export enum TimelogType {
   STANDARD = "standard",
   OVERTIME = "overtime",
   HOLIDAY = "holiday",
-  SICK = "sick"
+  SICK = "sick",
+  OTHER = "other"
 }
 
 export enum TimelogStatus {

@@ -19,10 +19,11 @@ const statusRenderer = (params: { value: string }) => {
 
 const typeRenderer = (params: { value: string }) => {
   const colorMap: Record<string, string> = {
-    regular: "blue",
+    standard: "blue",
     overtime: "orange",
-    remote: "teal",
-    on_site: "violet"
+    holiday: "teal",
+    sick: "red",
+    other: "gray"
   };
   return (
     <Badge color={colorMap[params.value] || "gray"} variant="outline">
@@ -45,7 +46,9 @@ const billableRenderer = (params: { data: Timelog }) => {
 const dateRenderer = (params: { value: string }) =>
   dayjs(params.value).format("ddd, MMM DD");
 
-export const getTimelogColumnDefs = (hideEmployee: boolean): ColDef<Timelog>[] => [
+export const getTimelogColumnDefs = (
+  hideEmployee: boolean
+): ColDef<Timelog>[] => [
   {
     headerName: "Date",
     field: "date",

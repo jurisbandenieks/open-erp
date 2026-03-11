@@ -15,6 +15,8 @@ import {
   getEmployeesByCompany as fetchEmployeesByCompany
 } from "../services/employeeService";
 import { validate } from "../middleware/validate";
+import { AppDataSource } from "../config/database";
+import { Employee } from "../entities/Employee.entity";
 
 export const listEmployees = [
   validate(listEmployeesQuerySchema, "query"),
@@ -158,6 +160,24 @@ export const assignManagees = async (
   try {
     const data = await setManagees(req.params.id, req.body.manageeIds ?? []);
     res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getMyEmployee = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.user!;
+    const emp = await AppDataSource.getRepository(Employee)
+      .createQueryBuilder("emp")
+      .leftJoinAndSelect("emp.user", "user")
+      .where("emp.userId = :userId", { userId })
+      .getOne();
+    res.json({ success: true, data: emp ?? null });
   } catch (err) {
     next(err);
   }

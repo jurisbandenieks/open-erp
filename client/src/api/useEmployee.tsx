@@ -100,6 +100,15 @@ export const useEmployeeTimeInLieus = (
   });
 };
 
+// Get the employee record of the currently logged-in user
+export const useMyEmployee = () => {
+  return useQuery({
+    queryKey: [...EMPLOYEE_KEYS.all, "me"] as const,
+    queryFn: () => employeeApi.me(),
+    staleTime: 60_000
+  });
+};
+
 // Create employee
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();

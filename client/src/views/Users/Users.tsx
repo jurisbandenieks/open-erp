@@ -23,9 +23,9 @@ import { useCompanies } from "@/api/useCompany";
 import type { User } from "@/types/User.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getUserColumnDefs, defaultUserColDef } from "./Users.columns";
-import { CreateUserModal } from "./CreateUserModal";
-import { EditUserModal } from "./EditUserModal";
-import { DeleteUserModal } from "./DeleteUserModal";
+import { CreateUserModal } from "./Modals/CreateUserModal";
+import { EditUserModal } from "./Modals/EditUserModal";
+import { DeleteUserModal } from "./Modals/DeleteUserModal";
 
 export function Users() {
   const [createOpen, setCreateOpen] = useState(false);

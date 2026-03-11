@@ -8,10 +8,11 @@ export const TimelogStatus = {
 export type TimelogStatus = (typeof TimelogStatus)[keyof typeof TimelogStatus];
 
 export const TimelogType = {
-  REGULAR: "regular",
+  STANDARD: "standard",
   OVERTIME: "overtime",
-  REMOTE: "remote",
-  ON_SITE: "on_site"
+  HOLIDAY: "holiday",
+  SICK: "sick",
+  OTHER: "other"
 } as const;
 
 export type TimelogType = (typeof TimelogType)[keyof typeof TimelogType];

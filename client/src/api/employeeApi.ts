@@ -8,6 +8,15 @@ import type {
 const EMPLOYEE_ENDPOINT = "/employees";
 
 export const employeeApi = {
+  // Get the employee record linked to the current logged-in user
+  me: async (): Promise<Employee | null> => {
+    const { data } = await axiosClient.get<{
+      success: boolean;
+      data: Employee | null;
+    }>(`${EMPLOYEE_ENDPOINT}/me`);
+    return data.data;
+  },
+
   // Get all employees with optional filters
   getAll: async (params?: {
     page?: number;
@@ -87,7 +96,9 @@ export const employeeApi = {
 
   // Get employee's managees
   getManagees: async (id: string) => {
-    const { data } = await axiosClient.get(`${EMPLOYEE_ENDPOINT}/${id}/managees`);
+    const { data } = await axiosClient.get(
+      `${EMPLOYEE_ENDPOINT}/${id}/managees`
+    );
     return data;
   },
 

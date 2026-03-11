@@ -22,14 +22,14 @@ const router = Router();
 // All timelog routes require authentication
 router.use(authenticate);
 
-router.get("/", listTimelogs);
+router.get("/", ...listTimelogs);
 router.get("/summary", getTimelogSummary);
-router.get("/employee/:employeeId", getTimelogsByEmployee);
+router.get("/employee/:employeeId", ...getTimelogsByEmployee);
 router.get("/entity/:entityId", getTimelogsByEntity);
 router.get("/:id", getTimelog);
-router.post("/", createTimelog);
-router.put("/:id", updateTimelog);
-router.patch("/:id", patchTimelog);
+router.post("/", ...createTimelog);
+router.put("/:id", ...updateTimelog);
+router.patch("/:id", ...patchTimelog);
 router.delete("/:id", removeTimelog);
 router.post("/:id/submit", submitTimelog);
 router.post("/:id/approve", authorize("admin", "manager"), approveTimelog);

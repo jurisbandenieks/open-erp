@@ -14,9 +14,9 @@ import { useOwners } from "@/api/useOwner";
 import type { Owner } from "@/types/Owner.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getOwnerColumnDefs, defaultOwnerColDef } from "./Owners.columns";
-import { CreateOwnerModal } from "./CreateOwnerModal";
-import { EditOwnerModal } from "./EditOwnerModal";
-import { DeleteOwnerModal } from "./DeleteOwnerModal";
+import { CreateOwnerModal } from "./Modals/CreateOwnerModal";
+import { EditOwnerModal } from "./Modals/EditOwnerModal";
+import { DeleteOwnerModal } from "./Modals/DeleteOwnerModal";
 
 // ─── Main view ───────────────────────────────────────────────────────────────
 

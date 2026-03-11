@@ -13,7 +13,8 @@ import {
   getEmployeeManagersHandler,
   assignManagers,
   getEmployeeManageesHandler,
-  assignManagees
+  assignManagees,
+  getMyEmployee
 } from "../controllers/employeeController";
 
 const router = Router();
@@ -21,6 +22,7 @@ const router = Router();
 // All employee routes require authentication
 router.use(authenticate);
 
+router.get("/me", getMyEmployee);
 router.get("/", ...listEmployees);
 router.get("/by-company/:companyId", getEmployeesByCompany);
 router.get("/:id", getEmployee);
