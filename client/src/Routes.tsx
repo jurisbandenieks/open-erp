@@ -1,6 +1,7 @@
 import { Routes, Route, BrowserRouter } from "react-router";
 import NotFound from "@/views/NotFound/NotFound";
 import { Timelogs } from "@/views/Timelogs/Timelogs";
+import { Home } from "@/views/Home/Home";
 import { Owners } from "@/views/Owners/Owners";
 import { Users } from "@/views/Users/Users";
 import { Employees } from "@/views/Employees/Employees";
@@ -26,7 +27,7 @@ const AppRoutes = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
               {/* Employee section */}
-              <Route index element={<div>Dashboard</div>} />
+              <Route index element={<Home />} />
               <Route path="absences" element={<div>Absences</div>} />
               <Route path="timelogs" element={<Timelogs />} />
 
