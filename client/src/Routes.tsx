@@ -25,19 +25,32 @@ const AppRoutes = () => {
           {/* Protected application routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
+              {/* Employee section */}
               <Route index element={<div>Dashboard</div>} />
+              <Route path="absences" element={<div>Absences</div>} />
               <Route path="timelogs" element={<Timelogs />} />
-              <Route path="admin">
+
+              {/* Management section */}
+              <Route path="management">
                 <Route element={<OwnerOrAdminRoute />}>
                   <Route path="employees" element={<Employees />} />
                   <Route path="companies" element={<Companies />} />
+                  <Route
+                    path="absence-tracker"
+                    element={<div>Absence Tracker</div>}
+                  />
+                  <Route path="reports" element={<div>Reports</div>} />
                 </Route>
               </Route>
 
-              {/* Sysadmin-only routes (nested inside Layout) */}
-              <Route element={<SysadminRoute />}>
-                <Route path="owners" element={<Owners />} />
-                <Route path="users" element={<Users />} />
+              {/* Admin section */}
+              <Route path="admin">
+                <Route element={<SysadminRoute />}>
+                  <Route path="users" element={<Users />} />
+                </Route>
+                <Route element={<OwnerOrAdminRoute />}>
+                  <Route path="owners" element={<Owners />} />
+                </Route>
               </Route>
             </Route>
           </Route>
