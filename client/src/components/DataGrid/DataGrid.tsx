@@ -1,10 +1,13 @@
 import { AgGridReact } from "ag-grid-react";
 import type {
   ColDef,
+  CellValueChangedEvent,
+  GetRowIdFunc,
   GridReadyEvent,
   IServerSideDatasource,
   IServerSideGetRowsParams,
   RowSelectionOptions,
+  SelectionChangedEvent,
   SortModelItem
 } from "ag-grid-community";
 import { useCallback } from "react";
@@ -25,6 +28,10 @@ interface DataGridBaseProps<TData> {
   className?: string;
   style?: React.CSSProperties;
   onGridReady?: (params: GridReadyEvent<TData>) => void;
+  onSelectionChanged?: (event: SelectionChangedEvent<TData>) => void;
+  onCellValueChanged?: (event: CellValueChangedEvent<TData>) => void;
+  getRowId?: GetRowIdFunc<TData>;
+  singleClickEdit?: boolean;
 }
 
 // ─── Client-side mode ────────────────────────────────────────────────────────
@@ -71,7 +78,12 @@ export const DataGrid = <TData,>({
   animateRows = true,
   tooltipShowDelay = 500,
   style = { height: "100%", width: "100%" },
+  rowSelection,
   onGridReady,
+  onSelectionChanged,
+  onCellValueChanged,
+  getRowId,
+  singleClickEdit,
   ...modeProps
 }: DataGridProps<TData>) => {
   const handleGridReady = useCallback(
@@ -93,7 +105,12 @@ export const DataGrid = <TData,>({
     paginationPageSize,
     paginationPageSizeSelector,
     animateRows,
-    tooltipShowDelay
+    tooltipShowDelay,
+    ...(rowSelection !== undefined ? { rowSelection } : {}),
+    ...(onSelectionChanged !== undefined ? { onSelectionChanged } : {}),
+    ...(onCellValueChanged !== undefined ? { onCellValueChanged } : {}),
+    ...(getRowId !== undefined ? { getRowId } : {}),
+    ...(singleClickEdit !== undefined ? { singleClickEdit } : {})
   };
 
   return (

@@ -4,7 +4,7 @@ export type WeekRow = {
   existingId: string | null;
   hours: number | string;
   type: string;
-  notes: string;
+  description: string;
   status: string | null;
   isDirty: boolean;
   isSaving: boolean;

@@ -1,0 +1,110 @@
+# Timelogs
+
+The Timelogs page (`/timelogs`) lets employees record and review their working hours on a per-day basis, organised by ISO week (Monday–Sunday). Admins, owners and managers can additionally inspect any employee's timelog history.
+
+---
+
+## Route
+
+`/timelogs` — protected route, accessible to all authenticated users.
+
+---
+
+## Behaviour by Role
+
+### Employees
+
+- The page loads automatically scoped to the logged-in user's employee record (resolved via `GET /employees/me`).
+- No employee selector is shown.
+
+### Admins / Owners / Managers
+
+- An **Employee** dropdown is shown above the week navigator.
+- Until an employee is selected the grid area displays a prompt.
+- The employee list is fetched from `GET /employees`.
+
+---
+
+## Week Navigation
+
+- Defaults to the current ISO week on mount.
+- **Previous / Next** arrow buttons shift the displayed week by one week.
+- A **Today** button appears when the current week is not selected, and jumps back to the current week.
+- The selected range is displayed as `MMM D – MMM D, YYYY` (e.g. `Mar 9 – Mar 15, 2026`).
+- A total-hours badge in the header reflects the sum of `totalHours` across all fetched timelogs for the week.
+
+---
+
+## Data Fetching
+
+- Hook: `useTimelogsByEmployeeAndWeek(employeeId, startDate, endDate)` from `useTimelog.tsx`.
+- API call: `GET /timelogs/employee/:id?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`.
+- The query is disabled until an `effectiveEmployeeId` is resolved.
+- Data is re-fetched automatically whenever the week or the selected employee changes.
+
+---
+
+## Grid
+
+Rendered with **AG Grid** via the shared `DataGrid` component. Column definitions and the default column def are exported from `Timelogs.columns.tsx`.
+
+### Columns
+
+| Column           | Field            | Notes                                               |
+| ---------------- | ---------------- | --------------------------------------------------- |
+| Date             | `date`           | Formatted `ddd, MMM DD`; pinned left                |
+| Employee         | `employeeName`   | Hidden when a specific employee is already selected |
+| Entity / Project | `entityName`     | Falls back to `–`                                   |
+| Hours            | `totalHours`     | Numeric; displayed as `Xh`                          |
+| Type             | `type`           | Colour-coded badge (see below)                      |
+| Status           | `status`         | Colour-coded badge (see below)                      |
+| Description      | `description`    | Flexible width; tooltip on overflow                 |
+| Location         | `location`       | Shows `Remote` when `isRemote` is true              |
+| Billable         | `billable`       | Shows calculated value `billableHours × hourlyRate` |
+| Approved By      | `approvedByName` | Falls back to `–`                                   |
+
+All columns are sortable, filterable and resizable by default.
+
+### Type badge colours
+
+| Value      | Colour |
+| ---------- | ------ |
+| `standard` | Blue   |
+| `overtime` | Orange |
+| `holiday`  | Teal   |
+| `sick`     | Red    |
+| `other`    | Gray   |
+
+### Status badge colours
+
+| Value       | Colour |
+| ----------- | ------ |
+| `draft`     | Gray   |
+| `submitted` | Blue   |
+| `approved`  | Green  |
+| `rejected`  | Red    |
+
+---
+
+## File Structure
+
+```
+Timelogs/
+├── Timelogs.tsx          # Page component
+├── Timelogs.columns.tsx  # AG Grid column definitions + defaultTimelogColDef
+├── constants/
+│   └── index.ts          # TYPE_OPTIONS select data, STATUS_COLORS map
+├── types/
+│   └── index.ts          # WeekRow local state type
+└── README
+```
+
+---
+
+## Planned Enhancements
+
+- **Inline editing** — allow hours, type and notes to be edited directly in the grid row and saved per-row without leaving the page.
+- **Create modal** — open a form modal to create a timelog for a specific day.
+- **Submit / Approve workflow** — submit a week for manager review; approve or reject from the management view.
+- **Owner employee filter** — scope the employee dropdown to only employees belonging to the owner's companies.
+- **Bulk actions** — submit or approve multiple timelogs at once.
