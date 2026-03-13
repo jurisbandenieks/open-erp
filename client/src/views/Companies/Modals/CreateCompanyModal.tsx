@@ -7,7 +7,6 @@ import {
   Group,
   Button,
   SimpleGrid,
-  Title,
   Alert
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
@@ -120,12 +119,7 @@ export function CreateCompanyModal({
   }));
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      size="lg"
-      title={<Title order={4}>New Company</Title>}
-    >
+    <Modal opened={opened} onClose={handleClose} size="lg" title="New Company">
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           {createCompany.error && (

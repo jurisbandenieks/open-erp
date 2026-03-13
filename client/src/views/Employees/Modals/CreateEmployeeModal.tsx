@@ -7,8 +7,7 @@ import {
   NumberInput,
   Group,
   Button,
-  SimpleGrid,
-  Title
+  SimpleGrid
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useCreateEmployee } from "@/api/useEmployee";
@@ -124,12 +123,7 @@ export function CreateEmployeeModal({
   const effectiveCompanyId = form.companyId || defaultCompanyId || "";
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      size="lg"
-      title={<Title order={4}>New Employee</Title>}
-    >
+    <Modal opened={opened} onClose={handleClose} size="lg" title="New Employee">
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <SimpleGrid cols={2}>

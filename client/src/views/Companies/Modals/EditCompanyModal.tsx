@@ -7,7 +7,6 @@ import {
   Group,
   Button,
   SimpleGrid,
-  Title,
   Alert
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
@@ -132,7 +131,7 @@ export function EditCompanyModal({ company, onClose }: Props) {
       opened={!!company}
       onClose={handleClose}
       size="lg"
-      title={<Title order={4}>Edit Company</Title>}
+      title="Edit Company"
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
