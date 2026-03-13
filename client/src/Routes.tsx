@@ -13,6 +13,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { SysadminRoute } from "@/components/SysadminRoute/SysadminRoute";
 import { OwnerOrAdminRoute } from "@/components/OwnerOrAdminRoute/OwnerOrAdminRoute";
 import { AuthProvider } from "@/context/AuthContext";
+import { Absences } from "./views/Absences/Absences";
 
 const AppRoutes = () => {
   return (
@@ -28,7 +29,7 @@ const AppRoutes = () => {
             <Route path="/" element={<Layout />}>
               {/* Employee section */}
               <Route index element={<Home />} />
-              <Route path="absences" element={<div>Absences</div>} />
+              <Route path="absences" element={<Absences />} />
               <Route path="timelogs" element={<Timelogs />} />
 
               {/* Management section */}

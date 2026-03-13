@@ -6,7 +6,8 @@ export const AbsenceType = {
   MATERNITY: "maternity",
   PATERNITY: "paternity",
   BEREAVEMENT: "bereavement",
-  STUDY: "study"
+  STUDY: "study",
+  TIME_IN_LIEU: "time_in_lieu"
 } as const;
 
 export type AbsenceType = (typeof AbsenceType)[keyof typeof AbsenceType];
@@ -29,15 +30,16 @@ export interface Absence {
   startDate: string;
   endDate: string;
   totalDays: number;
-  reason?: string;
-  notes?: string;
+  notes?: string | null;
+
+  // Time in lieu link
+  timeInLieuId?: string | null;
 
   // Approval workflow
   requestedAt: string;
-  reviewedBy?: string;
-  reviewedByName?: string;
-  reviewedAt?: string;
-  rejectionReason?: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  rejectionReason?: string | null;
 
   // Documents
   attachments?: string[];
@@ -51,24 +53,20 @@ export interface CreateAbsenceData {
   type: AbsenceType;
   startDate: string;
   endDate: string;
-  reason?: string;
   notes?: string;
-  attachments?: string[];
+  timeInLieuId?: string;
 }
 
 export interface UpdateAbsenceData {
   type?: AbsenceType;
   startDate?: string;
   endDate?: string;
-  reason?: string;
   notes?: string;
-  attachments?: string[];
+  timeInLieuId?: string;
 }
 
 export interface ReviewAbsenceData {
-  absenceId: string;
   status: "approved" | "rejected";
-  reviewedBy: string;
   rejectionReason?: string;
 }
 
@@ -76,22 +74,18 @@ export interface AbsenceFilters {
   employeeId?: string;
   type?: AbsenceType;
   status?: AbsenceStatus;
+  year?: number;
   startDateFrom?: string;
   startDateTo?: string;
-  endDateFrom?: string;
-  endDateTo?: string;
-  reviewedBy?: string;
-  search?: string;
+  page?: number;
+  limit?: number;
 }
 
-// Helper interface for absence balance/quota
-export interface AbsenceBalance {
+export interface VacationBalance {
   employeeId: string;
-  employeeName: string;
-  type: AbsenceType;
-  totalAllowed: number;
-  used: number;
-  pending: number;
-  remaining: number;
   year: number;
+  totalAllowed: number;
+  usedDays: number;
+  pendingDays: number;
+  remainingDays: number;
 }

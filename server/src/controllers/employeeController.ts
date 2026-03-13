@@ -109,8 +109,24 @@ export const getEmployeeTimelogs = (_req: Request, res: Response) => {
   res.json({ success: true, data: [], message: "Get employee timelogs" });
 };
 
-export const getEmployeeAbsences = (_req: Request, res: Response) => {
-  res.json({ success: true, data: [], message: "Get employee absences" });
+export const getEmployeeAbsences = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { year, status } = req.query as { year?: string; status?: string };
+    const { getAbsencesByEmployee } =
+      await import("../services/absenceService");
+    const data = await getAbsencesByEmployee(
+      req.params.id,
+      { year: year ? Number(year) : undefined, status },
+      req.user!
+    );
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const getEmployeeManagersHandler = async (

@@ -23,8 +23,8 @@ import {
   getEmployeeColumnDefs,
   defaultEmployeeColDef
 } from "./Employees.columns";
-import { ManageRelationsModal } from "./ManageRelationsModal";
-import { CreateEmployeeModal } from "./CreateEmployeeModal";
+import { ManageRelationsModal } from "./Modals/ManageRelationsModal";
+import { CreateEmployeeModal } from "./Modals/CreateEmployeeModal";
 
 export function Employees() {
   const [search, setSearch] = useState("");

@@ -1,0 +1,51 @@
+# Absences
+
+## Access
+
+Accessible by all authenticated users.
+
+## Overview
+
+The Absences page allows employees to submit, track, and manage absence requests. Admins can review (approve or reject) any absence.
+
+## Absence types
+
+- Vacation
+- Sick Leave
+- Personal
+- Unpaid
+- Maternity
+- Paternity
+- Bereavement
+- Study
+- Time in Lieu
+
+## Business rules
+
+### Vacation allowance
+
+- Each employee has an annual vacation day allowance (default: 25 days).
+- The balance resets each calendar year.
+- The balance panel shows: allowance / used / pending / remaining days.
+
+### Time in Lieu
+
+- An employee can only request a Time in Lieu absence if they have an **approved** TIL record in the database.
+- When submitting, the employee selects which TIL record to apply from a dropdown.
+- On approval the TIL record is marked as **used**; if the absence is subsequently rejected the TIL record is restored to **approved**.
+
+### Editing
+
+- A **pending** absence may be edited by the employee who submitted it.
+- Once **approved** or **rejected** the absence is read-only for employees.
+- An admin may re-review (approve → reject or reject → approve) an absence at any time.
+
+### Overlap prevention
+
+- Two non-cancelled/non-rejected absences for the same employee cannot overlap in date range.
+- This is enforced both on the frontend (UI warning) and on the backend (409 conflict response).
+
+### Working day calculation
+
+- `totalDays` counts only working days (Monday–Friday).
+- Weekends and bank/public/company holidays are excluded from the count.
