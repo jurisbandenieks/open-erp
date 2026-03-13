@@ -12,8 +12,10 @@ import RegisterPage from "@/views/Auth/RegisterPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { SysadminRoute } from "@/components/SysadminRoute/SysadminRoute";
 import { OwnerOrAdminRoute } from "@/components/OwnerOrAdminRoute/OwnerOrAdminRoute";
+import { ManagerOrOwnerOrAdminRoute } from "@/components/ManagerOrOwnerOrAdminRoute/ManagerOrOwnerOrAdminRoute";
 import { AuthProvider } from "@/context/AuthContext";
 import { Absences } from "./views/Absences/Absences";
+import { AbsencesManagement } from "./views/AbsencesManagement/AbsencesManagement";
 
 const AppRoutes = () => {
   return (
@@ -37,11 +39,13 @@ const AppRoutes = () => {
                 <Route element={<OwnerOrAdminRoute />}>
                   <Route path="employees" element={<Employees />} />
                   <Route path="companies" element={<Companies />} />
+                  <Route path="reports" element={<div>Reports</div>} />
+                </Route>
+                <Route element={<ManagerOrOwnerOrAdminRoute />}>
                   <Route
                     path="absence-tracker"
-                    element={<div>Absence Tracker</div>}
+                    element={<AbsencesManagement />}
                   />
-                  <Route path="reports" element={<div>Reports</div>} />
                 </Route>
               </Route>
 

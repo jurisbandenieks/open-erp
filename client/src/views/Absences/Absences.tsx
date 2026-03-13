@@ -13,7 +13,6 @@ import {
   SimpleGrid
 } from "@mantine/core";
 import { IconPlus, IconAlertCircle, IconCalendar } from "@tabler/icons-react";
-import { useAuth } from "@/context/AuthContext";
 import {
   useAbsences,
   useDeleteAbsence,
@@ -23,7 +22,6 @@ import { useMyEmployee } from "@/api/useEmployee";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getAbsenceColumnDefs, defaultAbsenceColDef } from "./Absences.columns";
 import { CreateAbsenceModal } from "./Modals/CreateAbsenceModal";
-import { ReviewAbsenceModal } from "./Modals/ReviewAbsenceModal";
 import type { Absence, AbsenceFilters } from "@/types/Absence.model";
 import { AbsenceStatus } from "@/types/Absence.model";
 import { notifications } from "@mantine/notifications";
@@ -42,14 +40,10 @@ const STATUS_OPTIONS = [
 ];
 
 export function Absences() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
-
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [statusFilter, setStatusFilter] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [editAbsence, setEditAbsence] = useState<Absence | null>(null);
-  const [reviewAbsence, setReviewAbsence] = useState<Absence | null>(null);
 
   const { data: myEmployee } = useMyEmployee();
 
@@ -91,12 +85,10 @@ export function Absences() {
   const columnDefs = useMemo(
     () =>
       getAbsenceColumnDefs({
-        isAdmin,
         onEdit: (a) => setEditAbsence(a),
-        onCancel: handleCancel,
-        onReview: (a) => setReviewAbsence(a)
+        onCancel: handleCancel
       }),
-    [isAdmin]
+    []
   );
 
   const absences = data?.data ?? [];
@@ -215,13 +207,6 @@ export function Absences() {
           editAbsence={editAbsence}
         />
       )}
-
-      {/* Review Modal (admin) */}
-      <ReviewAbsenceModal
-        opened={!!reviewAbsence}
-        onClose={() => setReviewAbsence(null)}
-        absence={reviewAbsence}
-      />
     </>
   );
 }

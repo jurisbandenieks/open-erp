@@ -212,14 +212,41 @@ export const listAbsences = async (
     .orderBy("a.requestedAt", "DESC");
 
   if (!isAdmin) {
-    // Non-admin: scope to own employee record
     const myEmp = await employeeRepo().findOne({
-      where: { userId: user.userId }
+      where: { userId: user.userId },
+      relations: ["manages"]
     });
     if (!myEmp) {
       return { data: [], total: 0, page, limit, totalPages: 0 };
     }
-    qb.andWhere("a.employeeId = :empId", { empId: myEmp.id });
+
+    // Build the set of employee IDs visible to this user
+    let scopedIds: string[] = [myEmp.id];
+
+    const owner = await ownerRepo().findOne({ where: { userId: user.userId } });
+    if (owner) {
+      // Owner: all employees across their companies
+      const companyEmps = await employeeRepo()
+        .createQueryBuilder("emp")
+        .innerJoin("emp.company", "cmp", "cmp.ownerId = :ownerId", {
+          ownerId: owner.id
+        })
+        .select("emp.id", "id")
+        .getRawMany<{ id: string }>();
+      if (companyEmps.length > 0) scopedIds = companyEmps.map((e) => e.id);
+    } else if (myEmp.manages?.length) {
+      // Manager: own record + direct managees
+      scopedIds = [myEmp.id, ...myEmp.manages.map((e) => e.id)];
+    }
+
+    if (employeeId) {
+      if (!scopedIds.includes(employeeId)) {
+        return { data: [], total: 0, page, limit, totalPages: 0 };
+      }
+      qb.andWhere("a.employeeId = :employeeId", { employeeId });
+    } else {
+      qb.andWhere("a.employeeId IN (:...empIds)", { empIds: scopedIds });
+    }
   } else if (employeeId) {
     qb.andWhere("a.employeeId = :employeeId", { employeeId });
   }
@@ -258,9 +285,19 @@ export const getAbsenceById = async (id: string, user: AuthPayload) => {
 
   const isAdmin = user.roles.includes("admin");
   if (!isAdmin) {
-    const myEmpId = await resolveOwnEmployeeId(user.userId);
-    if (a.employeeId !== myEmpId) {
-      throw new AppError("Forbidden", 403);
+    // Allow if they can review this absence (owner/manager) or it belongs to them
+    const myEmp = await employeeRepo().findOne({
+      where: { userId: user.userId },
+      relations: ["manages"]
+    });
+    if (!myEmp) throw new AppError("Forbidden", 403);
+
+    if (myEmp.id !== a.employeeId) {
+      try {
+        await assertCanReview(a.employee, user);
+      } catch {
+        throw new AppError("Forbidden", 403);
+      }
     }
   }
 
@@ -276,9 +313,23 @@ export const getAbsencesByEmployee = async (
 ) => {
   const isAdmin = user.roles.includes("admin");
   if (!isAdmin) {
-    const myEmpId = await resolveOwnEmployeeId(user.userId);
-    if (myEmpId !== employeeId) {
-      throw new AppError("Forbidden", 403);
+    const myEmp = await employeeRepo().findOne({
+      where: { userId: user.userId },
+      relations: ["manages"]
+    });
+    if (!myEmp) throw new AppError("Forbidden", 403);
+
+    if (myEmp.id !== employeeId) {
+      // Allow if owner or manager of that employee
+      const targetEmp = await employeeRepo().findOne({
+        where: { id: employeeId }
+      });
+      if (!targetEmp) throw new AppError("Employee not found", 404);
+      try {
+        await assertCanReview(targetEmp, user);
+      } catch {
+        throw new AppError("Forbidden", 403);
+      }
     }
   }
 

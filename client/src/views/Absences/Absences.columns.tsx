@@ -29,17 +29,13 @@ export const defaultAbsenceColDef: ColDef = {
 };
 
 interface ColumnOptions {
-  isAdmin: boolean;
   onEdit?: (absence: Absence) => void;
   onCancel?: (absence: Absence) => void;
-  onReview?: (absence: Absence) => void;
 }
 
 export function getAbsenceColumnDefs({
-  isAdmin,
   onEdit,
-  onCancel,
-  onReview
+  onCancel
 }: ColumnOptions): ColDef<Absence>[] {
   const cols: ColDef<Absence>[] = [
     {
@@ -93,23 +89,10 @@ export function getAbsenceColumnDefs({
     }
   ];
 
-  if (isAdmin) {
-    cols.unshift({
-      field: "employeeName",
-      headerName: "Employee",
-      width: 160
-    });
-    cols.push({
-      field: "rejectionReason",
-      headerName: "Rejection Reason",
-      width: 180
-    });
-  }
-
   // Actions column
   cols.push({
     headerName: "Actions",
-    width: isAdmin ? 200 : 160,
+    width: 140,
     sortable: false,
     filter: false,
     cellRenderer: ({ data }: { data: Absence }) => {
@@ -143,32 +126,6 @@ export function getAbsenceColumnDefs({
               onClick={() => onCancel(data)}
             >
               Cancel
-            </button>
-          )}
-          {isAdmin && isPending && onReview && (
-            <button
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                cursor: "pointer",
-                color: "green"
-              }}
-              onClick={() => onReview(data)}
-            >
-              Review
-            </button>
-          )}
-          {isAdmin && data.status === "approved" && onReview && (
-            <button
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                cursor: "pointer",
-                color: "orange"
-              }}
-              onClick={() => onReview(data)}
-            >
-              Re-review
             </button>
           )}
         </div>
