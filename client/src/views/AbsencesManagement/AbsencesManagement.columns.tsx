@@ -1,5 +1,6 @@
 import type { ColDef } from "ag-grid-community";
-import { Badge } from "@mantine/core";
+import { Badge, ActionIcon, Tooltip } from "@mantine/core";
+import { IconClipboardCheck, IconRefresh } from "@tabler/icons-react";
 import type { Absence } from "@/types/Absence.model";
 import {
   STATUS_COLORS,
@@ -78,7 +79,7 @@ export function getManagementAbsenceColumnDefs({
     },
     {
       headerName: "Actions",
-      width: 120,
+      width: 80,
       sortable: false,
       filter: false,
       cellRenderer: ({ data }: { data: Absence }) => {
@@ -86,6 +87,7 @@ export function getManagementAbsenceColumnDefs({
         const canReview =
           data.status === "pending" || data.status === "approved";
         if (!canReview || !onReview) return null;
+        const isReReview = data.status === "approved";
         return (
           <div
             style={{
@@ -94,17 +96,24 @@ export function getManagementAbsenceColumnDefs({
               height: "100%"
             }}
           >
-            <button
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                cursor: "pointer",
-                color: data.status === "approved" ? "orange" : "green"
-              }}
-              onClick={() => onReview(data)}
+            <Tooltip
+              label={isReReview ? "Re-review" : "Review"}
+              withArrow
+              position="left"
             >
-              {data.status === "approved" ? "Re-review" : "Review"}
-            </button>
+              <ActionIcon
+                variant="subtle"
+                color={isReReview ? "orange" : "green"}
+                size="sm"
+                onClick={() => onReview(data)}
+              >
+                {isReReview ? (
+                  <IconRefresh size="1rem" />
+                ) : (
+                  <IconClipboardCheck size="1rem" />
+                )}
+              </ActionIcon>
+            </Tooltip>
           </div>
         );
       }

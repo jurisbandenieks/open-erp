@@ -472,7 +472,7 @@ async function seed() {
   const absenceRepo = AppDataSource.getRepository(Absence);
 
   const absences = absenceRepo.create([
-    // Employee 3 — maternity leave (explains ON_LEAVE status)
+    // ── Employee 3 (Mia) — MATERNITY leave; explains ON_LEAVE status ─────────
     {
       employeeId: employees[2].id,
       type: AbsenceType.MATERNITY,
@@ -486,7 +486,8 @@ async function seed() {
       reviewedBy: managerEmp2.id,
       reviewedAt: d("2025-11-05T14:00:00Z")
     },
-    // Employee 1 — approved vacation
+
+    // ── Employee 1 (Sophie) — APPROVED vacation ───────────────────────────────
     {
       employeeId: employees[0].id,
       type: AbsenceType.VACATION,
@@ -500,7 +501,8 @@ async function seed() {
       reviewedBy: managerEmp1.id,
       reviewedAt: d("2026-02-16T10:00:00Z")
     },
-    // Employee 2 — pending sick leave
+
+    // ── Employee 2 (Luca) — PENDING sick leave ────────────────────────────────
     {
       employeeId: employees[1].id,
       type: AbsenceType.SICK_LEAVE,
@@ -512,7 +514,8 @@ async function seed() {
       notes: "Flu — doctor note attached",
       requestedAt: d("2026-03-03T07:30:00Z")
     },
-    // Employee 4 — time in lieu (linked later)
+
+    // ── Employee 4 (Carlos) — PENDING time-in-lieu (linked to TIL below) ──────
     {
       employeeId: employees[3].id,
       type: AbsenceType.TIME_IN_LIEU,
@@ -523,11 +526,111 @@ async function seed() {
       totalHours: 7.5,
       notes: "Using overtime earned from February sprint",
       requestedAt: d("2026-03-01T08:00:00Z")
+    },
+
+    // ── Employee 1 (Sophie) — REJECTED personal day ───────────────────────────
+    {
+      employeeId: employees[0].id,
+      type: AbsenceType.PERSONAL,
+      status: AbsenceStatus.REJECTED,
+      startDate: d("2026-02-02"),
+      endDate: d("2026-02-02"),
+      totalDays: 1,
+      totalHours: 8,
+      notes: "Personal errand",
+      requestedAt: d("2026-01-28T11:00:00Z"),
+      reviewedBy: managerEmp1.id,
+      reviewedAt: d("2026-01-29T09:00:00Z"),
+      rejectionReason: "Critical sprint week — please reschedule"
+    },
+
+    // ── Employee 1 (Sophie) — CANCELLED vacation (self-cancelled) ─────────────
+    {
+      employeeId: employees[0].id,
+      type: AbsenceType.VACATION,
+      status: AbsenceStatus.CANCELLED,
+      startDate: d("2026-01-19"),
+      endDate: d("2026-01-23"),
+      totalDays: 5,
+      totalHours: 40,
+      notes: "Planned winter break — cancelled due to project deadline",
+      requestedAt: d("2025-12-10T10:00:00Z")
+    },
+
+    // ── Employee 2 (Luca) — APPROVED bereavement leave ────────────────────────
+    {
+      employeeId: employees[1].id,
+      type: AbsenceType.BEREAVEMENT,
+      status: AbsenceStatus.APPROVED,
+      startDate: d("2026-02-09"),
+      endDate: d("2026-02-11"),
+      totalDays: 3,
+      totalHours: 24,
+      notes: "Family bereavement",
+      requestedAt: d("2026-02-09T06:00:00Z"),
+      reviewedBy: managerEmp1.id,
+      reviewedAt: d("2026-02-09T07:30:00Z")
+    },
+
+    // ── Employee 4 (Carlos) — APPROVED study day ─────────────────────────────
+    {
+      employeeId: employees[3].id,
+      type: AbsenceType.STUDY,
+      status: AbsenceStatus.APPROVED,
+      startDate: d("2026-02-20"),
+      endDate: d("2026-02-20"),
+      totalDays: 1,
+      totalHours: 8,
+      notes: "ISTQB Foundation certification exam",
+      requestedAt: d("2026-02-10T14:00:00Z"),
+      reviewedBy: managerEmp2.id,
+      reviewedAt: d("2026-02-11T09:00:00Z")
+    },
+
+    // ── Employee 2 (Luca) — PENDING unpaid leave request ─────────────────────
+    {
+      employeeId: employees[1].id,
+      type: AbsenceType.UNPAID,
+      status: AbsenceStatus.PENDING,
+      startDate: d("2026-04-13"),
+      endDate: d("2026-04-17"),
+      totalDays: 5,
+      totalHours: 40,
+      notes: "Extended family trip — requesting unpaid leave",
+      requestedAt: d("2026-03-05T10:00:00Z")
+    },
+
+    // ── Manager 1 (Alice) — APPROVED vacation ────────────────────────────────
+    {
+      employeeId: managerEmp1.id,
+      type: AbsenceType.VACATION,
+      status: AbsenceStatus.APPROVED,
+      startDate: d("2026-04-06"),
+      endDate: d("2026-04-10"),
+      totalDays: 5,
+      totalHours: 40,
+      notes: "Easter break",
+      requestedAt: d("2026-03-01T11:00:00Z"),
+      reviewedBy: adminUser.id,
+      reviewedAt: d("2026-03-02T09:00:00Z")
+    },
+
+    // ── Employee 1 (Sophie) — PENDING paternity/vacation for 2026 Q2 ─────────
+    {
+      employeeId: employees[0].id,
+      type: AbsenceType.VACATION,
+      status: AbsenceStatus.PENDING,
+      startDate: d("2026-05-04"),
+      endDate: d("2026-05-08"),
+      totalDays: 5,
+      totalHours: 40,
+      notes: "May bank holiday week",
+      requestedAt: d("2026-03-10T09:00:00Z")
     }
   ]);
 
   await absenceRepo.save(absences);
-  console.log("✔  Absences seeded (4)");
+  console.log("✔  Absences seeded (11)");
 
   // ── 9. TimeInLieu ────────────────────────────────────────────────────────
 

@@ -5,7 +5,6 @@ import {
   Textarea,
   Group,
   Button,
-  Title,
   Text,
   Badge,
   Divider
@@ -80,7 +79,7 @@ export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
       opened={opened}
       onClose={handleClose}
       size="md"
-      title={<Title order={4}>Review Absence</Title>}
+      title="Review Absence"
     >
       <Stack gap="md">
         <Stack gap="xs">

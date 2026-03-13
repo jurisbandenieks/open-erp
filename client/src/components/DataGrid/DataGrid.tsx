@@ -77,7 +77,7 @@ export const DataGrid = <TData,>({
   paginationPageSizeSelector = [25, 50, 100],
   animateRows = true,
   tooltipShowDelay = 500,
-  style = { height: "100%", width: "100%" },
+  style = { height: "500px", width: "100%" },
   rowSelection,
   onGridReady,
   onSelectionChanged,

@@ -8,11 +8,11 @@ import {
   Center,
   Paper,
   Select,
-  TextInput,
   Text
 } from "@mantine/core";
-import { IconAlertCircle, IconCalendar, IconSearch } from "@tabler/icons-react";
+import { IconAlertCircle, IconCalendar } from "@tabler/icons-react";
 import { useAbsences } from "@/api/useAbsence";
+import { useEmployees } from "@/api/useEmployee";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
   getManagementAbsenceColumnDefs,
@@ -38,25 +38,30 @@ const STATUS_OPTIONS = [
 export function AbsencesManagement() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [statusFilter, setStatusFilter] = useState("");
-  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [reviewAbsence, setReviewAbsence] = useState<Absence | null>(null);
+
+  const { data: employeesData } = useEmployees({ limit: 200 });
+  const employeeOptions = useMemo(() => {
+    const opts = (employeesData?.data ?? []).map((e) => ({
+      value: e.id,
+      label: `${e.firstName} ${e.lastName}`.trim() || e.employeeNumber
+    }));
+    return [{ value: "", label: "All employees" }, ...opts];
+  }, [employeesData]);
 
   const filters: AbsenceFilters = useMemo(
     () => ({
       year: Number(year),
-      ...(statusFilter ? { status: statusFilter as never } : {})
+      ...(statusFilter ? { status: statusFilter as never } : {}),
+      ...(employeeId ? { employeeId } : {})
     }),
-    [year, statusFilter]
+    [year, statusFilter, employeeId]
   );
 
   const { data, isLoading, error } = useAbsences(filters);
 
-  const absences = useMemo(() => {
-    const all = data?.data ?? [];
-    if (!employeeSearch.trim()) return all;
-    const q = employeeSearch.toLowerCase();
-    return all.filter((a) => (a.employeeName ?? "").toLowerCase().includes(q));
-  }, [data, employeeSearch]);
+  const absences = data?.data ?? [];
 
   const columnDefs = useMemo(
     () =>
@@ -93,13 +98,14 @@ export function AbsencesManagement() {
             w={160}
             clearable
           />
-          <TextInput
-            label="Filter by employee"
-            placeholder="Name…"
-            value={employeeSearch}
-            onChange={(e) => setEmployeeSearch(e.currentTarget.value)}
-            w={200}
-            leftSection={<IconSearch size="1rem" />}
+          <Select
+            label="Employee"
+            data={employeeOptions}
+            value={employeeId ?? ""}
+            onChange={(v) => setEmployeeId(v || null)}
+            w={220}
+            searchable
+            clearable
           />
         </Group>
 

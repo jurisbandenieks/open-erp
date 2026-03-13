@@ -1,5 +1,6 @@
 import type { ColDef } from "ag-grid-community";
-import { Badge } from "@mantine/core";
+import { Badge, ActionIcon, Tooltip, Group } from "@mantine/core";
+import { IconEdit, IconX } from "@tabler/icons-react";
 import type { Absence } from "@/types/Absence.model";
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -92,43 +93,40 @@ export function getAbsenceColumnDefs({
   // Actions column
   cols.push({
     headerName: "Actions",
-    width: 140,
+    width: 80,
     sortable: false,
     filter: false,
     cellRenderer: ({ data }: { data: Absence }) => {
       if (!data) return null;
       const isPending = data.status === "pending";
+      if (!isPending) return null;
       return (
-        <div
-          style={{
-            display: "flex",
-            gap: 4,
-            alignItems: "center",
-            height: "100%"
-          }}
-        >
-          {isPending && onEdit && (
-            <button
-              style={{ fontSize: 12, padding: "2px 8px", cursor: "pointer" }}
-              onClick={() => onEdit(data)}
-            >
-              Edit
-            </button>
+        <Group gap={4} align="center" style={{ height: "100%" }} wrap="nowrap">
+          {onEdit && (
+            <Tooltip label="Edit" withArrow position="left">
+              <ActionIcon
+                variant="subtle"
+                color="blue"
+                size="sm"
+                onClick={() => onEdit(data)}
+              >
+                <IconEdit size="1rem" />
+              </ActionIcon>
+            </Tooltip>
           )}
-          {isPending && onCancel && (
-            <button
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                cursor: "pointer",
-                color: "red"
-              }}
-              onClick={() => onCancel(data)}
-            >
-              Cancel
-            </button>
+          {onCancel && (
+            <Tooltip label="Cancel" withArrow position="left">
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="sm"
+                onClick={() => onCancel(data)}
+              >
+                <IconX size="1rem" />
+              </ActionIcon>
+            </Tooltip>
           )}
-        </div>
+        </Group>
       );
     }
   });
