@@ -3,12 +3,14 @@ import { z } from "zod";
 import { AppDataSource } from "../config/database";
 import { Timelog } from "../entities/Timelog.entity";
 import { Employee } from "../entities/Employee.entity";
+import { Owner } from "../entities/Owner.entity";
 import { TimelogType, TimelogStatus } from "../entities/enums";
 import { validate } from "../middleware/validate";
 import { AppError } from "../middleware/errorHandler";
 
 const timelogRepo = () => AppDataSource.getRepository(Timelog);
 const employeeRepo = () => AppDataSource.getRepository(Employee);
+const ownerRepo = () => AppDataSource.getRepository(Owner);
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -41,6 +43,34 @@ const updateSchema = z.object({
   notes: z.string().optional()
 });
 
+const rejectSchema = z.object({
+  rejectionReason: z.string().min(1, "Rejection reason is required")
+});
+
+const weeklyApprovalsSchema = z.object({
+  weekStart: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+  weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)")
+});
+
+const bulkReviewWeekSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    weekStart: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+    weekEnd: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+    action: z.enum(["approved", "rejected"]),
+    rejectionReason: z.string().optional()
+  })
+  .refine((d) => d.action !== "rejected" || !!d.rejectionReason?.trim(), {
+    message: "Rejection reason is required when rejecting",
+    path: ["rejectionReason"]
+  });
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const toDto = (t: Timelog) => ({
@@ -66,6 +96,37 @@ const toDto = (t: Timelog) => ({
   createdAt: t.createdAt,
   updatedAt: t.updatedAt
 });
+
+/**
+ * Returns the set of employeeIds visible to the requesting user.
+ * Returns null if the user is admin (no restriction).
+ * Returns an empty array if the user has no valid scope.
+ */
+async function getScopedEmployeeIds(userId: string): Promise<string[] | null> {
+  const myEmp = await employeeRepo().findOne({
+    where: { userId },
+    relations: ["manages"]
+  });
+
+  const owner = await ownerRepo().findOne({ where: { userId } });
+
+  if (owner) {
+    const rows = await employeeRepo()
+      .createQueryBuilder("emp")
+      .innerJoin("emp.company", "cmp", "cmp.ownerId = :ownerId", {
+        ownerId: owner.id
+      })
+      .select("emp.id", "id")
+      .getRawMany<{ id: string }>();
+    return rows.map((r) => r.id);
+  }
+
+  if (myEmp?.manages?.length) {
+    return myEmp.manages.map((e) => e.id);
+  }
+
+  return myEmp ? [] : [];
+}
 
 const buildListQuery = (
   params: z.infer<typeof listSchema>,
@@ -260,7 +321,7 @@ export const removeTimelog = async (
   }
 };
 
-// ─── Stub handlers (approval workflow — future) ───────────────────────────────
+// ─── Approval workflow ────────────────────────────────────────────────────────
 
 export const getTimelogSummary = (_req: Request, res: Response) => {
   res.json({ success: true, data: {} });
@@ -270,22 +331,238 @@ export const getTimelogsByEntity = (_req: Request, res: Response) => {
   res.json({ success: true, data: [] });
 };
 
-export const submitTimelog = (_req: Request, res: Response) => {
-  res.json({ success: true, data: null, message: "Submit timelog" });
+export const submitTimelog = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const t = await timelogRepo().findOne({ where: { id: req.params.id } });
+    if (!t) throw new AppError("Timelog not found", 404);
+
+    t.status = TimelogStatus.SUBMITTED;
+    await timelogRepo().save(t);
+
+    const saved = await timelogRepo()
+      .createQueryBuilder("t")
+      .leftJoinAndSelect("t.employee", "employee")
+      .leftJoinAndSelect("employee.user", "user")
+      .where("t.id = :id", { id: t.id })
+      .getOne();
+
+    res.json({ success: true, data: toDto(saved!) });
+  } catch (err) {
+    next(err);
+  }
 };
 
-export const approveTimelog = (_req: Request, res: Response) => {
-  res.json({ success: true, data: null, message: "Approve timelog" });
+export const approveTimelog = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const t = await timelogRepo().findOne({ where: { id: req.params.id } });
+    if (!t) throw new AppError("Timelog not found", 404);
+
+    t.status = TimelogStatus.APPROVED;
+    t.approved = true;
+    t.approvedBy = req.user!.userId;
+    t.approvedAt = new Date();
+    t.rejectionReason = null as unknown as string;
+
+    await timelogRepo().save(t);
+
+    const saved = await timelogRepo()
+      .createQueryBuilder("t")
+      .leftJoinAndSelect("t.employee", "employee")
+      .leftJoinAndSelect("employee.user", "user")
+      .where("t.id = :id", { id: t.id })
+      .getOne();
+
+    res.json({ success: true, data: toDto(saved!) });
+  } catch (err) {
+    next(err);
+  }
 };
 
-export const rejectTimelog = (_req: Request, res: Response) => {
-  res.json({ success: true, data: null, message: "Reject timelog" });
-};
+export const rejectTimelog = [
+  validate(rejectSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { rejectionReason } = req.body as z.infer<typeof rejectSchema>;
+      const t = await timelogRepo().findOne({ where: { id: req.params.id } });
+      if (!t) throw new AppError("Timelog not found", 404);
+
+      t.status = TimelogStatus.REJECTED;
+      t.approved = false;
+      t.rejectionReason = rejectionReason;
+
+      await timelogRepo().save(t);
+
+      const saved = await timelogRepo()
+        .createQueryBuilder("t")
+        .leftJoinAndSelect("t.employee", "employee")
+        .leftJoinAndSelect("employee.user", "user")
+        .where("t.id = :id", { id: t.id })
+        .getOne();
+
+      res.json({ success: true, data: toDto(saved!) });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
 
 export const bulkSubmitTimelogs = (_req: Request, res: Response) => {
   res.json({ success: true, message: "Bulk submit timelogs" });
 };
 
-export const bulkApproveTimelogs = (_req: Request, res: Response) => {
-  res.json({ success: true, message: "Bulk approve timelogs" });
-};
+/**
+ * Bulk-approve or bulk-reject all timelogs for an employee in a given week.
+ * Body: { employeeId, weekStart, weekEnd, action, rejectionReason? }
+ */
+export const bulkApproveTimelogs = [
+  validate(bulkReviewWeekSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { employeeId, weekStart, weekEnd, action, rejectionReason } =
+        req.body as z.infer<typeof bulkReviewWeekSchema>;
+      const user = req.user!;
+      const isAdmin = user.roles.includes("admin");
+
+      if (!isAdmin) {
+        const scopedIds = await getScopedEmployeeIds(user.userId);
+        if (!scopedIds || !scopedIds.includes(employeeId)) {
+          throw new AppError(
+            "Not authorised to review this employee's timelogs",
+            403
+          );
+        }
+      }
+
+      const timelogs = await timelogRepo()
+        .createQueryBuilder("t")
+        .where("t.employeeId = :employeeId", { employeeId })
+        .andWhere("t.date >= :weekStart", { weekStart })
+        .andWhere("t.date <= :weekEnd", { weekEnd })
+        .andWhere("t.status IN (:...statuses)", {
+          statuses: [TimelogStatus.SUBMITTED, TimelogStatus.DRAFT]
+        })
+        .getMany();
+
+      const now = new Date();
+      for (const t of timelogs) {
+        if (action === "approved") {
+          t.status = TimelogStatus.APPROVED;
+          t.approved = true;
+          t.approvedBy = user.userId;
+          t.approvedAt = now;
+          t.rejectionReason = null as unknown as string;
+        } else {
+          t.status = TimelogStatus.REJECTED;
+          t.approved = false;
+          t.rejectionReason = rejectionReason!;
+        }
+      }
+
+      await timelogRepo().save(timelogs);
+      res.json({ success: true, updated: timelogs.length });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
+
+/**
+ * GET /timelogs/weekly-approvals?weekStart=YYYY-MM-DD&weekEnd=YYYY-MM-DD
+ * Returns per-employee weekly summaries, scoped by role.
+ */
+export const listWeeklyApprovals = [
+  validate(weeklyApprovalsSchema, "query"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { weekStart, weekEnd } = req.query as z.infer<
+        typeof weeklyApprovalsSchema
+      >;
+      const user = req.user!;
+      const isAdmin = user.roles.includes("admin");
+
+      let scopedIds: string[] | null = null;
+
+      if (!isAdmin) {
+        scopedIds = await getScopedEmployeeIds(user.userId);
+        if (scopedIds !== null && scopedIds.length === 0) {
+          return res.json({ success: true, data: [] });
+        }
+      }
+
+      const qb = timelogRepo()
+        .createQueryBuilder("t")
+        .leftJoinAndSelect("t.employee", "employee")
+        .leftJoinAndSelect("employee.user", "user")
+        .where("t.date >= :weekStart", { weekStart })
+        .andWhere("t.date <= :weekEnd", { weekEnd });
+
+      if (scopedIds !== null) {
+        qb.andWhere("t.employeeId IN (:...scopedIds)", { scopedIds });
+      }
+
+      const timelogs = await qb.getMany();
+
+      // Group by employee
+      const byEmployee = new Map<string, Timelog[]>();
+      for (const t of timelogs) {
+        if (!t.employeeId) continue;
+        const arr = byEmployee.get(t.employeeId) ?? [];
+        arr.push(t);
+        byEmployee.set(t.employeeId, arr);
+      }
+
+      const data = Array.from(byEmployee.entries()).map(([empId, tls]) => {
+        const emp = tls[0].employee;
+        const employeeName = emp?.user
+          ? `${emp.user.firstName} ${emp.user.lastName}`.trim()
+          : empId;
+
+        const totalHours = tls.reduce((s, t) => s + Number(t.totalHours), 0);
+        const draftCount = tls.filter(
+          (t) => t.status === TimelogStatus.DRAFT
+        ).length;
+        const submittedCount = tls.filter(
+          (t) => t.status === TimelogStatus.SUBMITTED
+        ).length;
+        const approvedCount = tls.filter(
+          (t) => t.status === TimelogStatus.APPROVED
+        ).length;
+        const rejectedCount = tls.filter(
+          (t) => t.status === TimelogStatus.REJECTED
+        ).length;
+
+        let weekStatus: "approved" | "rejected" | "submitted" | "draft" =
+          "draft";
+        if (approvedCount === tls.length) weekStatus = "approved";
+        else if (rejectedCount > 0) weekStatus = "rejected";
+        else if (submittedCount > 0) weekStatus = "submitted";
+
+        return {
+          employeeId: empId,
+          employeeName,
+          weekStart,
+          weekEnd,
+          totalHours,
+          draftCount,
+          submittedCount,
+          approvedCount,
+          rejectedCount,
+          weekStatus,
+          timelogs: tls.map(toDto)
+        };
+      });
+
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;

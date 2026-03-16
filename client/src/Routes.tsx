@@ -16,6 +16,7 @@ import { ManagerOrOwnerOrAdminRoute } from "@/components/ManagerOrOwnerOrAdminRo
 import { AuthProvider } from "@/context/AuthContext";
 import { Absences } from "./views/Absences/Absences";
 import { AbsencesManagement } from "./views/AbsencesManagement/AbsencesManagement";
+import { Approvals } from "./views/Approvals/Approvals";
 
 const AppRoutes = () => {
   return (
@@ -46,6 +47,7 @@ const AppRoutes = () => {
                     path="absence-tracker"
                     element={<AbsencesManagement />}
                   />
+                  <Route path="approvals" element={<Approvals />} />
                 </Route>
               </Route>
 

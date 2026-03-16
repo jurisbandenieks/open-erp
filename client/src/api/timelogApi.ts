@@ -21,6 +21,28 @@ export interface TimelogFilters {
   approved?: boolean;
 }
 
+export interface WeeklyApprovalSummary {
+  employeeId: string;
+  employeeName: string;
+  weekStart: string;
+  weekEnd: string;
+  totalHours: number;
+  draftCount: number;
+  submittedCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  weekStatus: "draft" | "submitted" | "approved" | "rejected";
+  timelogs: Timelog[];
+}
+
+export interface BulkReviewWeekPayload {
+  employeeId: string;
+  weekStart: string;
+  weekEnd: string;
+  action: "approved" | "rejected";
+  rejectionReason?: string;
+}
+
 export const timelogApi = {
   // Get all timelogs with optional filters
   getAll: async (params?: TimelogFilters) => {
@@ -205,6 +227,27 @@ export const timelogApi = {
       byStatus: Record<string, number>;
       byType: Record<string, number>;
     }>(`${TIMELOG_ENDPOINT}/summary`, { params });
+    return data;
+  },
+
+  // Weekly approvals summary (manager/owner/admin)
+  getWeeklyApprovals: async (params: {
+    weekStart: string;
+    weekEnd: string;
+  }) => {
+    const { data } = await axiosClient.get<{
+      success: boolean;
+      data: WeeklyApprovalSummary[];
+    }>(`${TIMELOG_ENDPOINT}/weekly-approvals`, { params });
+    return data;
+  },
+
+  // Bulk approve or reject all timelogs for an employee in a week
+  bulkReviewWeek: async (payload: BulkReviewWeekPayload) => {
+    const { data } = await axiosClient.post<{
+      success: boolean;
+      updated: number;
+    }>(`${TIMELOG_ENDPOINT}/bulk/approve`, payload);
     return data;
   }
 };

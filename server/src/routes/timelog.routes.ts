@@ -14,7 +14,8 @@ import {
   approveTimelog,
   rejectTimelog,
   bulkSubmitTimelogs,
-  bulkApproveTimelogs
+  bulkApproveTimelogs,
+  listWeeklyApprovals
 } from "../controllers/timelogController";
 
 const router = Router();
@@ -24,6 +25,7 @@ router.use(authenticate);
 
 router.get("/", ...listTimelogs);
 router.get("/summary", getTimelogSummary);
+router.get("/weekly-approvals", ...listWeeklyApprovals);
 router.get("/employee/:employeeId", ...getTimelogsByEmployee);
 router.get("/entity/:entityId", getTimelogsByEntity);
 router.get("/:id", getTimelog);
@@ -33,12 +35,8 @@ router.patch("/:id", ...patchTimelog);
 router.delete("/:id", removeTimelog);
 router.post("/:id/submit", submitTimelog);
 router.post("/:id/approve", authorize("admin", "manager"), approveTimelog);
-router.post("/:id/reject", authorize("admin", "manager"), rejectTimelog);
+router.post("/:id/reject", authorize("admin", "manager"), ...rejectTimelog);
 router.post("/bulk/submit", bulkSubmitTimelogs);
-router.post(
-  "/bulk/approve",
-  authorize("admin", "manager"),
-  bulkApproveTimelogs
-);
+router.post("/bulk/approve", ...bulkApproveTimelogs);
 
 export default router;

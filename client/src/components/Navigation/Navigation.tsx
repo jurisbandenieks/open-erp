@@ -7,7 +7,8 @@ import {
   IconClock,
   IconFileText,
   IconChevronRight,
-  IconBuildingSkyscraper
+  IconBuildingSkyscraper,
+  IconClipboardCheck
 } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router";
 import { Footer } from "@/components/Footer/Footer";
@@ -33,6 +34,12 @@ const employeeItems: MenuItem[] = [
 ];
 
 const ownerItems: MenuItem[] = [
+  {
+    icon: IconClipboardCheck,
+    label: "Approvals",
+    path: "/management/approvals",
+    roles: ["admin", "owner", "manager"]
+  },
   {
     icon: IconUsers,
     label: "Employees",

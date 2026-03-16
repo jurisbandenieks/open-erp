@@ -1,1 +1,17 @@
-Managment page to approve and reject Timelogs from Employees
+# Approvals
+
+Management view for reviewing employee timelog submissions. Accessible by managers, owners, and admins.
+
+## Access control
+
+- **Admin** — sees all timelogs across all companies
+- **Owner** — sees all timelogs for employees in their company
+- **Manager** — sees timelogs for their direct managees only
+
+## Features
+
+- Weekly timelog summary per employee (hours worked, vacation taken, and related data)
+- Approve or reject a weekly summary in one action
+- On approval, every individual timelog in that week is marked approved with the reviewer recorded
+- On rejection, a rejection reason is required and propagated to each timelog in the week
+- Scoped visibility based on the viewer's role

@@ -5,7 +5,12 @@ import {
   type UseQueryOptions,
   type UseMutationOptions
 } from "@tanstack/react-query";
-import { timelogApi, type TimelogFilters } from "./timelogApi";
+import {
+  timelogApi,
+  type TimelogFilters,
+  type WeeklyApprovalSummary,
+  type BulkReviewWeekPayload
+} from "./timelogApi";
 import type {
   Timelog,
   CreateTimelogData,
@@ -17,29 +22,53 @@ import type {
 export const timelogKeys = {
   all: ["timelogs"] as const,
   lists: () => [...timelogKeys.all, "list"] as const,
-  list: (filters?: TimelogFilters) => [...timelogKeys.lists(), filters] as const,
+  list: (filters?: TimelogFilters) =>
+    [...timelogKeys.lists(), filters] as const,
   details: () => [...timelogKeys.all, "detail"] as const,
   detail: (id: string) => [...timelogKeys.details(), id] as const,
-  byEmployee: (employeeId: string, filters?: Omit<TimelogFilters, 'employeeId'>) =>
-    [...timelogKeys.all, "employee", employeeId, filters] as const,
-  byWeek: (startDate: string, endDate: string, filters?: Omit<TimelogFilters, 'startDate' | 'endDate'>) =>
-    [...timelogKeys.all, "week", startDate, endDate, filters] as const,
+  byEmployee: (
+    employeeId: string,
+    filters?: Omit<TimelogFilters, "employeeId">
+  ) => [...timelogKeys.all, "employee", employeeId, filters] as const,
+  byWeek: (
+    startDate: string,
+    endDate: string,
+    filters?: Omit<TimelogFilters, "startDate" | "endDate">
+  ) => [...timelogKeys.all, "week", startDate, endDate, filters] as const,
   byEmployeeAndWeek: (
     employeeId: string,
     startDate: string,
     endDate: string,
-    filters?: Omit<TimelogFilters, 'employeeId' | 'startDate' | 'endDate'>
-  ) => [...timelogKeys.all, "employee", employeeId, "week", startDate, endDate, filters] as const,
-  byEntity: (entityId: string, filters?: Omit<TimelogFilters, 'entityId'>) =>
+    filters?: Omit<TimelogFilters, "employeeId" | "startDate" | "endDate">
+  ) =>
+    [
+      ...timelogKeys.all,
+      "employee",
+      employeeId,
+      "week",
+      startDate,
+      endDate,
+      filters
+    ] as const,
+  byEntity: (entityId: string, filters?: Omit<TimelogFilters, "entityId">) =>
     [...timelogKeys.all, "entity", entityId, filters] as const,
-  summary: (params: { employeeId?: string; entityId?: string; startDate: string; endDate: string }) =>
-    [...timelogKeys.all, "summary", params] as const
+  summary: (params: {
+    employeeId?: string;
+    entityId?: string;
+    startDate: string;
+    endDate: string;
+  }) => [...timelogKeys.all, "summary", params] as const,
+  weeklyApprovals: (weekStart: string, weekEnd: string) =>
+    [...timelogKeys.all, "weekly-approvals", weekStart, weekEnd] as const
 };
 
 // Get all timelogs
 export const useTimelogs = (
   filters?: TimelogFilters,
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getAll>>>, "queryKey" | "queryFn">
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getAll>>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: timelogKeys.list(filters),
@@ -64,8 +93,11 @@ export const useTimelog = (
 // Get timelogs by employee
 export const useTimelogsByEmployee = (
   employeeId: string,
-  filters?: Omit<TimelogFilters, 'employeeId'>,
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEmployee>>>, "queryKey" | "queryFn">
+  filters?: Omit<TimelogFilters, "employeeId">,
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEmployee>>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: timelogKeys.byEmployee(employeeId, filters),
@@ -79,8 +111,11 @@ export const useTimelogsByEmployee = (
 export const useTimelogsByWeek = (
   startDate: string,
   endDate: string,
-  filters?: Omit<TimelogFilters, 'startDate' | 'endDate'>,
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByWeek>>>, "queryKey" | "queryFn">
+  filters?: Omit<TimelogFilters, "startDate" | "endDate">,
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByWeek>>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: timelogKeys.byWeek(startDate, endDate, filters),
@@ -95,12 +130,23 @@ export const useTimelogsByEmployeeAndWeek = (
   employeeId: string,
   startDate: string,
   endDate: string,
-  filters?: Omit<TimelogFilters, 'employeeId' | 'startDate' | 'endDate'>,
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEmployeeAndWeek>>>, "queryKey" | "queryFn">
+  filters?: Omit<TimelogFilters, "employeeId" | "startDate" | "endDate">,
+  options?: Omit<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof timelogApi.getByEmployeeAndWeek>>
+    >,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
-    queryKey: timelogKeys.byEmployeeAndWeek(employeeId, startDate, endDate, filters),
-    queryFn: () => timelogApi.getByEmployeeAndWeek(employeeId, startDate, endDate, filters),
+    queryKey: timelogKeys.byEmployeeAndWeek(
+      employeeId,
+      startDate,
+      endDate,
+      filters
+    ),
+    queryFn: () =>
+      timelogApi.getByEmployeeAndWeek(employeeId, startDate, endDate, filters),
     enabled: !!employeeId && !!startDate && !!endDate,
     ...options
   });
@@ -109,8 +155,11 @@ export const useTimelogsByEmployeeAndWeek = (
 // Get timelogs by entity
 export const useTimelogsByEntity = (
   entityId: string,
-  filters?: Omit<TimelogFilters, 'entityId'>,
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEntity>>>, "queryKey" | "queryFn">
+  filters?: Omit<TimelogFilters, "entityId">,
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEntity>>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: timelogKeys.byEntity(entityId, filters),
@@ -122,8 +171,16 @@ export const useTimelogsByEntity = (
 
 // Get timelog summary
 export const useTimelogSummary = (
-  params: { employeeId?: string; entityId?: string; startDate: string; endDate: string },
-  options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getSummary>>>, "queryKey" | "queryFn">
+  params: {
+    employeeId?: string;
+    entityId?: string;
+    startDate: string;
+    endDate: string;
+  },
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getSummary>>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: timelogKeys.summary(params),
@@ -143,9 +200,13 @@ export const useCreateTimelog = (
     mutationFn: timelogApi.create,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
       if (data.entityId) {
-        queryClient.invalidateQueries({ queryKey: timelogKeys.byEntity(data.entityId) });
+        queryClient.invalidateQueries({
+          queryKey: timelogKeys.byEntity(data.entityId)
+        });
       }
     },
     ...options
@@ -154,7 +215,11 @@ export const useCreateTimelog = (
 
 // Update timelog mutation
 export const useUpdateTimelog = (
-  options?: UseMutationOptions<Timelog, Error, { id: string; data: UpdateTimelogData }>
+  options?: UseMutationOptions<
+    Timelog,
+    Error,
+    { id: string; data: UpdateTimelogData }
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -163,9 +228,13 @@ export const useUpdateTimelog = (
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
       if (data.entityId) {
-        queryClient.invalidateQueries({ queryKey: timelogKeys.byEntity(data.entityId) });
+        queryClient.invalidateQueries({
+          queryKey: timelogKeys.byEntity(data.entityId)
+        });
       }
     },
     ...options
@@ -174,7 +243,11 @@ export const useUpdateTimelog = (
 
 // Patch timelog mutation
 export const usePatchTimelog = (
-  options?: UseMutationOptions<Timelog, Error, { id: string; data: Partial<UpdateTimelogData> }>
+  options?: UseMutationOptions<
+    Timelog,
+    Error,
+    { id: string; data: Partial<UpdateTimelogData> }
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -183,9 +256,13 @@ export const usePatchTimelog = (
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
       if (data.entityId) {
-        queryClient.invalidateQueries({ queryKey: timelogKeys.byEntity(data.entityId) });
+        queryClient.invalidateQueries({
+          queryKey: timelogKeys.byEntity(data.entityId)
+        });
       }
     },
     ...options
@@ -218,7 +295,9 @@ export const useSubmitTimelog = (
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
     },
     ...options
   });
@@ -226,7 +305,11 @@ export const useSubmitTimelog = (
 
 // Approve timelog mutation
 export const useApproveTimelog = (
-  options?: UseMutationOptions<Timelog, Error, { id: string; data?: ApproveTimelogData }>
+  options?: UseMutationOptions<
+    Timelog,
+    Error,
+    { id: string; data?: ApproveTimelogData }
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -235,7 +318,9 @@ export const useApproveTimelog = (
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
     },
     ...options
   });
@@ -243,16 +328,23 @@ export const useApproveTimelog = (
 
 // Reject timelog mutation
 export const useRejectTimelog = (
-  options?: UseMutationOptions<Timelog, Error, { id: string; rejectionReason: string }>
+  options?: UseMutationOptions<
+    Timelog,
+    Error,
+    { id: string; rejectionReason: string }
+  >
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, rejectionReason }) => timelogApi.reject(id, rejectionReason),
+    mutationFn: ({ id, rejectionReason }) =>
+      timelogApi.reject(id, rejectionReason),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: timelogKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: timelogKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: timelogKeys.byEmployee(data.employeeId) });
+      queryClient.invalidateQueries({
+        queryKey: timelogKeys.byEmployee(data.employeeId)
+      });
     },
     ...options
   });
@@ -260,7 +352,11 @@ export const useRejectTimelog = (
 
 // Bulk submit timelogs mutation
 export const useBulkSubmitTimelogs = (
-  options?: UseMutationOptions<{ success: boolean; updated: number }, Error, string[]>
+  options?: UseMutationOptions<
+    { success: boolean; updated: number },
+    Error,
+    string[]
+  >
 ) => {
   const queryClient = useQueryClient();
 
@@ -292,3 +388,41 @@ export const useBulkApproveTimelogs = (
     ...options
   });
 };
+
+// Weekly approvals summary (manager/owner/admin view)
+export const useWeeklyApprovals = (
+  weekStart: string,
+  weekEnd: string,
+  options?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getWeeklyApprovals>>>,
+    "queryKey" | "queryFn"
+  >
+) => {
+  return useQuery({
+    queryKey: timelogKeys.weeklyApprovals(weekStart, weekEnd),
+    queryFn: () => timelogApi.getWeeklyApprovals({ weekStart, weekEnd }),
+    enabled: !!weekStart && !!weekEnd,
+    ...options
+  });
+};
+
+// Bulk review (approve or reject) all timelogs for an employee in a week
+export const useBulkReviewWeek = (
+  options?: UseMutationOptions<
+    { success: boolean; updated: number },
+    Error,
+    BulkReviewWeekPayload
+  >
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: timelogApi.bulkReviewWeek,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: timelogKeys.all });
+    },
+    ...options
+  });
+};
+
+export type { WeeklyApprovalSummary, BulkReviewWeekPayload };
