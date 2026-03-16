@@ -16,7 +16,9 @@ import { notifications } from "@mantine/notifications";
 import {
   IconChevronLeft,
   IconChevronRight,
-  IconAlertCircle
+  IconAlertCircle,
+  IconPlus,
+  IconSend
 } from "@tabler/icons-react";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getTimelogColumnDefs, defaultTimelogColDef } from "./Timelogs.columns";
@@ -27,11 +29,13 @@ import { useMyEmployee, useEmployees } from "@/api/useEmployee";
 import {
   useTimelogsByEmployeeAndWeek,
   useCreateTimelog,
-  useUpdateTimelog
+  useUpdateTimelog,
+  useBulkSubmitTimelogs
 } from "@/api/useTimelog";
 import { useAuth } from "@/context/AuthContext";
 import type { Timelog, TimelogType } from "@/types/Timelog.model";
 import { STATUS_COLORS } from "./constants";
+import { CreateTimelogModal } from "./Modals/CreateTimelogModal";
 
 dayjs.extend(isoWeek);
 
@@ -83,9 +87,11 @@ function EmployeeWeekGrid({
   const [rows, setRows] = useState<GridRow[]>(() =>
     buildWeekRows(weekStart, [])
   );
+  const [createDate, setCreateDate] = useState<string | null>(null);
 
   const createTimelog = useCreateTimelog();
   const updateTimelog = useUpdateTimelog();
+  const submitWeek = useBulkSubmitTimelogs();
 
   // Rebuild skeleton immediately when the week changes
   useEffect(() => {
@@ -194,6 +200,10 @@ function EmployeeWeekGrid({
 
   const totalHours = rows.reduce((sum, r) => sum + (r.totalHours ?? 0), 0);
 
+  const draftIds = rows
+    .filter((r) => r.existingId && r.status === "draft")
+    .map((r) => r.existingId!);
+
   const isEditable = (params: { data?: GridRow }) =>
     params.data?.status !== "submitted" && params.data?.status !== "approved";
 
@@ -202,11 +212,29 @@ function EmployeeWeekGrid({
       {
         headerName: "Day",
         field: "dayLabel",
-        width: 130,
+        width: 160,
         pinned: "left",
         editable: false,
         sortable: false,
-        filter: false
+        filter: false,
+        cellRenderer: (params: { data: GridRow }) => {
+          const isEmpty = !params.data.existingId && !params.data.isDirty;
+          return (
+            <Group gap={4} align="center" h="100%" wrap="nowrap">
+              <Text size="sm">{params.data.dayLabel}</Text>
+              {isEmpty && (
+                <ActionIcon
+                  size="xs"
+                  variant="subtle"
+                  color="blue"
+                  onClick={() => setCreateDate(params.data.date)}
+                >
+                  <IconPlus size={10} />
+                </ActionIcon>
+              )}
+            </Group>
+          );
+        }
       },
       {
         headerName: "Hours",
@@ -309,7 +337,33 @@ function EmployeeWeekGrid({
 
   return (
     <Stack gap={0} h="100%">
-      <Group justify="flex-end" px="md" py="xs">
+      <Group justify="space-between" px="md" py="xs">
+        <Button
+          leftSection={<IconSend size={14} />}
+          size="xs"
+          variant="light"
+          color="teal"
+          disabled={draftIds.length === 0}
+          loading={submitWeek.isPending}
+          onClick={() =>
+            submitWeek.mutate(draftIds, {
+              onSuccess: () =>
+                notifications.show({
+                  title: "Submitted",
+                  message: "Week submitted for approval.",
+                  color: "teal"
+                }),
+              onError: () =>
+                notifications.show({
+                  title: "Error",
+                  message: "Failed to submit week.",
+                  color: "red"
+                })
+            })
+          }
+        >
+          Submit week
+        </Button>
         <Badge size="lg" variant="light" color="blue">
           {totalHours.toFixed(1)}h this week
         </Badge>
@@ -325,6 +379,12 @@ function EmployeeWeekGrid({
           onCellValueChanged={onCellValueChanged}
         />
       </div>
+      <CreateTimelogModal
+        opened={!!createDate}
+        onClose={() => setCreateDate(null)}
+        employeeId={employeeId}
+        defaultDate={createDate ?? undefined}
+      />
     </Stack>
   );
 }

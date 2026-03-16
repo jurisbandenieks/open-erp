@@ -71,6 +71,12 @@ const bulkReviewWeekSchema = z
     path: ["rejectionReason"]
   });
 
+const bulkSubmitSchema = z.object({
+  timelogIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one timelog ID required")
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const toDto = (t: Timelog) => ({
@@ -414,9 +420,29 @@ export const rejectTimelog = [
   }
 ] as const;
 
-export const bulkSubmitTimelogs = (_req: Request, res: Response) => {
-  res.json({ success: true, message: "Bulk submit timelogs" });
-};
+export const bulkSubmitTimelogs = [
+  validate(bulkSubmitSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { timelogIds } = req.body as z.infer<typeof bulkSubmitSchema>;
+
+      const timelogs = await timelogRepo()
+        .createQueryBuilder("t")
+        .where("t.id IN (:...timelogIds)", { timelogIds })
+        .andWhere("t.status = :status", { status: TimelogStatus.DRAFT })
+        .getMany();
+
+      for (const t of timelogs) {
+        t.status = TimelogStatus.SUBMITTED;
+      }
+
+      await timelogRepo().save(timelogs);
+      res.json({ success: true, updated: timelogs.length });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
 
 /**
  * Bulk-approve or bulk-reject all timelogs for an employee in a given week.

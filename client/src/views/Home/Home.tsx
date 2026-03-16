@@ -367,18 +367,16 @@ export const Home = () => {
                 <ThemeIcon size="sm" variant="light" color="green">
                   <IconUser size={12} />
                 </ThemeIcon>
-                <Text size="sm">
-                  <Text span fw={500}>
-                    Status:{" "}
-                  </Text>
-                  <Badge
-                    size="xs"
-                    color={myEmployee.status === "active" ? "green" : "gray"}
-                    variant="dot"
-                  >
-                    {myEmployee.status}
-                  </Badge>
+                <Text size="sm" span fw={500}>
+                  Status:
                 </Text>
+                <Badge
+                  size="xs"
+                  color={myEmployee.status === "active" ? "green" : "gray"}
+                  variant="dot"
+                >
+                  {myEmployee.status}
+                </Badge>
               </Group>
             </SimpleGrid>
           </>

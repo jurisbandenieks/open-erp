@@ -30,13 +30,13 @@ router.get("/employee/:employeeId", ...getTimelogsByEmployee);
 router.get("/entity/:entityId", getTimelogsByEntity);
 router.get("/:id", getTimelog);
 router.post("/", ...createTimelog);
+router.post("/bulk/submit", ...bulkSubmitTimelogs);
+router.post("/bulk/approve", ...bulkApproveTimelogs);
 router.put("/:id", ...updateTimelog);
 router.patch("/:id", ...patchTimelog);
 router.delete("/:id", removeTimelog);
 router.post("/:id/submit", submitTimelog);
 router.post("/:id/approve", authorize("admin", "manager"), approveTimelog);
 router.post("/:id/reject", authorize("admin", "manager"), ...rejectTimelog);
-router.post("/bulk/submit", bulkSubmitTimelogs);
-router.post("/bulk/approve", ...bulkApproveTimelogs);
 
 export default router;
