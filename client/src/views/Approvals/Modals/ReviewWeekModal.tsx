@@ -13,19 +13,13 @@ import {
 import { notifications } from "@mantine/notifications";
 import { useBulkReviewWeek } from "@/hooks/useTimelog";
 import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
+import { STATUS_COLORS } from "@/utils/constants";
 
 interface Props {
   opened: boolean;
   onClose: () => void;
   summary: WeeklyApprovalSummary | null;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: "gray",
-  submitted: "blue",
-  approved: "green",
-  rejected: "red"
-};
 
 export function ReviewWeekModal({ opened, onClose, summary }: Props) {
   const [rejectionReason, setRejectionReason] = useState("");

@@ -2,13 +2,7 @@ import type { ColDef } from "ag-grid-community";
 import { Badge, ActionIcon, Tooltip, Group } from "@mantine/core";
 import { IconClipboardCheck, IconRefresh } from "@tabler/icons-react";
 import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: "gray",
-  submitted: "blue",
-  approved: "green",
-  rejected: "red"
-};
+import { STATUS_COLORS } from "@/utils/constants";
 
 export const defaultApprovalsColDef: ColDef<WeeklyApprovalSummary> = {
   sortable: true,

@@ -7,10 +7,3 @@ export const TYPE_OPTIONS = [
   { value: TimelogType.OVERTIME, label: "Overtime" },
   { value: TimelogType.OTHER, label: "Other" }
 ];
-
-export const STATUS_COLORS: Record<string, string> = {
-  draft: "gray",
-  submitted: "blue",
-  approved: "green",
-  rejected: "red"
-};

@@ -34,7 +34,7 @@ import {
 } from "@/hooks/useTimelog";
 import { useAuth } from "@/context/AuthContext";
 import type { Timelog, TimelogType } from "@/types/Timelog.model";
-import { STATUS_COLORS } from "./constants";
+import { STATUS_COLORS } from "@/utils/constants";
 import { CreateTimelogModal } from "./Modals/CreateTimelogModal";
 
 dayjs.extend(isoWeek);
