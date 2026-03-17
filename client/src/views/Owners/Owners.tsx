@@ -10,7 +10,7 @@ import {
   Paper
 } from "@mantine/core";
 import { IconPlus, IconAlertCircle } from "@tabler/icons-react";
-import { useOwners } from "@/api/useOwner";
+import { useOwners } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getOwnerColumnDefs, defaultOwnerColDef } from "./Owners.columns";

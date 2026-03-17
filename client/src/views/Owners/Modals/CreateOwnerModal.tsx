@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { useCreateOwner } from "@/api/useOwner";
+import { useCreateOwner } from "@/hooks/useOwner";
 
 interface CreateFormValues {
   email: string;

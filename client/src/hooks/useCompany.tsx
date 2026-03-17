@@ -4,7 +4,7 @@ import {
   useQueryClient,
   type UseQueryOptions
 } from "@tanstack/react-query";
-import { companyApi } from "./companyApi";
+import { companyApi } from "../api/companyApi";
 import type { PaginatedResponse } from "@/types";
 import type {
   Company,

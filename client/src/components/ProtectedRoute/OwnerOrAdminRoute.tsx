@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuth } from "@/context/AuthContext";
-import { useMyOwner } from "@/api/useOwner";
+import { useMyOwner } from "@/hooks/useOwner";
 import { Center, Loader } from "@mantine/core";
 
 interface OwnerOrAdminRouteProps {

@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { useUpdateCompany } from "@/api/useCompany";
+import { useUpdateCompany } from "@/hooks/useCompany";
 import type { Company, CompanyStatus } from "@/types/Company.model";
 
 const STATUS_OPTIONS = [

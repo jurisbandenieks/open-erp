@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions
 } from "@tanstack/react-query";
-import { userApi } from "./userApi";
+import { userApi } from "../api/userApi";
 import type {
   User,
   CreateUserPayload,

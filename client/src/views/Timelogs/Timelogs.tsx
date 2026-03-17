@@ -25,13 +25,13 @@ import { getTimelogColumnDefs, defaultTimelogColDef } from "./Timelogs.columns";
 import type { ColDef, CellValueChangedEvent } from "ag-grid-community";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
-import { useMyEmployee, useEmployees } from "@/api/useEmployee";
+import { useMyEmployee, useEmployees } from "@/hooks/useEmployee";
 import {
   useTimelogsByEmployeeAndWeek,
   useCreateTimelog,
   useUpdateTimelog,
   useBulkSubmitTimelogs
-} from "@/api/useTimelog";
+} from "@/hooks/useTimelog";
 import { useAuth } from "@/context/AuthContext";
 import type { Timelog, TimelogType } from "@/types/Timelog.model";
 import { STATUS_COLORS } from "./constants";

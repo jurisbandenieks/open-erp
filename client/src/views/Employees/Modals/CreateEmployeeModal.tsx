@@ -10,7 +10,7 @@ import {
   SimpleGrid
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useCreateEmployee } from "@/api/useEmployee";
+import { useCreateEmployee } from "@/hooks/useEmployee";
 import type { CompanyOption } from "@/types/Company.model";
 
 const CONTRACT_TYPE_OPTIONS = [

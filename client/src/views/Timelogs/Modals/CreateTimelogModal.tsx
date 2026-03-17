@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
-import { useCreateTimelog, useUpdateTimelog } from "@/api/useTimelog";
+import { useCreateTimelog, useUpdateTimelog } from "@/hooks/useTimelog";
 import type { Timelog } from "@/types/Timelog.model";
 import { TYPE_OPTIONS } from "../constants";
 import type { TimelogType } from "@/types/Timelog.model";

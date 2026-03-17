@@ -14,8 +14,8 @@ import {
 } from "@mantine/core";
 import { IconPlus, IconAlertCircle, IconSearch } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { useAllCompanies, useUpdateCompany } from "@/api/useCompany";
-import { useMyOwner } from "@/api/useOwner";
+import { useAllCompanies, useUpdateCompany } from "@/hooks/useCompany";
+import { useMyOwner } from "@/hooks/useOwner";
 import { useAuth } from "@/context/AuthContext";
 import type { Company } from "@/types/Company.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";

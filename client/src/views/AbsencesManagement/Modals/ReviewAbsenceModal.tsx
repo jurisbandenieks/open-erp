@@ -10,7 +10,7 @@ import {
   Divider
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { useReviewAbsence } from "@/api/useAbsence";
+import { useReviewAbsence } from "@/hooks/useAbsence";
 import { STATUS_COLORS, TYPE_LABELS } from "@/views/Absences/Absences.columns";
 import type { Absence } from "@/types/Absence.model";
 

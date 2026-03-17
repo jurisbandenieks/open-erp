@@ -11,8 +11,8 @@ import {
   Text
 } from "@mantine/core";
 import { IconAlertCircle, IconCalendar } from "@tabler/icons-react";
-import { useAbsences } from "@/api/useAbsence";
-import { useEmployees } from "@/api/useEmployee";
+import { useAbsences } from "@/hooks/useAbsence";
+import { useEmployees } from "@/hooks/useEmployee";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
   getManagementAbsenceColumnDefs,

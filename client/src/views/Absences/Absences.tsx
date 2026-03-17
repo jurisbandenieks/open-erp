@@ -17,8 +17,8 @@ import {
   useAbsences,
   useDeleteAbsence,
   useVacationBalance
-} from "@/api/useAbsence";
-import { useMyEmployee } from "@/api/useEmployee";
+} from "@/hooks/useAbsence";
+import { useMyEmployee } from "@/hooks/useEmployee";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getAbsenceColumnDefs, defaultAbsenceColDef } from "./Absences.columns";
 import { CreateAbsenceModal } from "./Modals/CreateAbsenceModal";

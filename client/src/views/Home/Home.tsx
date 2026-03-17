@@ -27,10 +27,10 @@ import {
   useMyEmployee,
   useEmployees,
   useEmployeeManagers
-} from "@/api/useEmployee";
-import { useMyOwner, useOwners } from "@/api/useOwner";
-import { useMyCompanies, useAllCompanies } from "@/api/useCompany";
-import { useUsers } from "@/api/useUser";
+} from "@/hooks/useEmployee";
+import { useMyOwner, useOwners } from "@/hooks/useOwner";
+import { useMyCompanies, useAllCompanies } from "@/hooks/useCompany";
+import { useUsers } from "@/hooks/useUser";
 
 // ─── Stat card ───────────────────────────────────────────────────────────────
 

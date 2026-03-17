@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { employeeApi } from "./employeeApi";
+import { employeeApi } from "../api/employeeApi";
 import type {
   CreateEmployeeData,
   UpdateEmployeeData

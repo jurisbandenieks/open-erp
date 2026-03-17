@@ -13,8 +13,8 @@ import {
 import { useNavigate, useLocation } from "react-router";
 import { Footer } from "@/components/Footer/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { useMyOwner } from "@/api/useOwner";
-import { useMyEmployee } from "@/api/useEmployee";
+import { useMyOwner } from "@/hooks/useOwner";
+import { useMyEmployee } from "@/hooks/useEmployee";
 
 interface NavigationProps {
   onNavigate?: () => void;

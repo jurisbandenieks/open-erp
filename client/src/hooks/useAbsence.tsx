@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { absenceApi } from "./absenceApi";
+import { absenceApi } from "../api/absenceApi";
 import type {
   AbsenceFilters,
   CreateAbsenceData,

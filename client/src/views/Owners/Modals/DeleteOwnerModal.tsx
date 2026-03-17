@@ -1,6 +1,6 @@
 import { Modal, Stack, Group, Text, Button, Alert } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useDeleteOwner } from "@/api/useOwner";
+import { useDeleteOwner } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
 
 interface Props {

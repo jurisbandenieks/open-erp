@@ -1,7 +1,31 @@
-Application type set in seperate files base on
+# Types
 
-1. Base model
-2. Form model
-3. Read model
-4. Update model
-5. Create model
+Domain types are co-located in model files. Each file follows the same structure:
+
+1. **Enums** — `const` enum objects + derived union types (e.g. `TimelogStatus`, `TimelogType`)
+2. **Base model** — the full read shape returned by the API
+3. **Create payload** — fields required to create a new record
+4. **Update payload** — partial fields for updates/patches
+5. **Filters** — query params for list endpoints
+6. **Supporting types** — any additional shapes used by the domain
+
+## Files
+
+| File                  | Exports                                                                                                                                                                                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.ts`            | `PaginatedResponse<T>`                                                                                                                                                                                                                                  |
+| `User.model.ts`       | `UserRole`, `UserStatus`, `User`, `AuthUser`, `LoginCredentials`, `RegisterData`, `LoginPayload`, `RegisterPayload`, `AuthResponse`                                                                                                                     |
+| `Company.model.ts`    | `CompanyStatus`, `Company`, `CreateCompanyPayload`, `UpdateCompanyPayload`, `CompanyOption`, `CompanyListParams`                                                                                                                                        |
+| `Employee.model.ts`   | `EmploymentStatus`, `Employee`, `CreateEmployeeData`, `UpdateEmployeeData`                                                                                                                                                                              |
+| `Owner.model.ts`      | `OwnerUser`, `Owner`, `CreateOwnerPayload`, `UpdateOwnerPayload`                                                                                                                                                                                        |
+| `Manager.model.ts`    | `ManagerRole`, `Manager`, `EntityManager`, `AssignManagerData`                                                                                                                                                                                          |
+| `Timelog.model.ts`    | `TimelogStatus`, `TimelogType`, `Timelog`, `CreateTimelogData`, `UpdateTimelogData`, `ApproveTimelogData`, `TimelogFilters`, `EmployeeReportRow`, `ReportTotals`, `WeeklyApprovalSummary`, `BulkReviewWeekPayload`, `TimelogSummary`, `WeeklyTimesheet` |
+| `Absence.model.ts`    | `AbsenceType`, `AbsenceStatus`, `Absence`, `CreateAbsenceData`, `UpdateAbsenceData`, `ReviewAbsenceData`, `AbsenceFilters`, `VacationBalance`                                                                                                           |
+| `Holiday.model.ts`    | `HolidayType`, `Holiday`, `CreateHolidayData`, `UpdateHolidayData`, `HolidayFilters`, `HolidayCalendar`                                                                                                                                                 |
+| `TimeInLieu.model.ts` | `TimeInLieuStatus`, `TimeInLieu`, `CreateTimeInLieuData`, `UpdateTimeInLieuData`, `ApproveTimeInLieuData`, `UseTimeInLieuData`, `TimeInLieuFilters`, `TimeInLieuBalance`                                                                                |
+
+## Conventions
+
+- Import directly from the model file: `import type { Timelog } from "@/types/Timelog.model"`
+- Use `PaginatedResponse<T>` from `@/types` for all paginated list responses
+- API files should **not** define or re-export types — keep all types here

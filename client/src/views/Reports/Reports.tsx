@@ -14,8 +14,8 @@ import {
 import { DatePickerInput } from "@mantine/dates";
 import { IconAlertCircle } from "@tabler/icons-react";
 import dayjs from "dayjs";
-import { useEmployees } from "@/api/useEmployee";
-import { useTimelogSummary } from "@/api/useTimelog";
+import { useEmployees } from "@/hooks/useEmployee";
+import { useTimelogSummary } from "@/hooks/useTimelog";
 import type { EmployeeReportRow } from "@/types/Timelog.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {

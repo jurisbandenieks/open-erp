@@ -11,8 +11,8 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { useCreateCompany } from "@/api/useCompany";
-import { useOwners } from "@/api/useOwner";
+import { useCreateCompany } from "@/hooks/useCompany";
+import { useOwners } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
 
 interface Props {

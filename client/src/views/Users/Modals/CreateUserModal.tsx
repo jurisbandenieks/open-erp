@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { useCreateUser } from "@/api/useUser";
+import { useCreateUser } from "@/hooks/useUser";
 
 interface CreateFormValues {
   email: string;

@@ -18,8 +18,8 @@ import {
   IconSearch,
   IconBuilding
 } from "@tabler/icons-react";
-import { useUsers } from "@/api/useUser";
-import { useCompanies } from "@/api/useCompany";
+import { useUsers } from "@/hooks/useUser";
+import { useCompanies } from "@/hooks/useCompany";
 import type { User } from "@/types/User.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import { getUserColumnDefs, defaultUserColDef } from "./Users.columns";

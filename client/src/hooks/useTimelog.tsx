@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions
 } from "@tanstack/react-query";
-import { timelogApi } from "./timelogApi";
+import { timelogApi } from "../api/timelogApi";
 import type {
   Timelog,
   CreateTimelogData,

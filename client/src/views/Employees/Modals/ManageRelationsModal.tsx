@@ -17,8 +17,8 @@ import {
   useEmployee,
   useAssignManagers,
   useAssignManagees
-} from "@/api/useEmployee";
-import { useEmployees } from "@/api/useEmployee";
+} from "@/hooks/useEmployee";
+import { useEmployees } from "@/hooks/useEmployee";
 import type { Employee } from "@/types/Employee.model";
 
 interface Props {

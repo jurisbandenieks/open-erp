@@ -1,6 +1,6 @@
 import { Modal, Stack, Text, Group, Button, Alert } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useDeleteUser } from "@/api/useUser";
+import { useDeleteUser } from "@/hooks/useUser";
 import type { User } from "@/types/User.model";
 
 interface Props {

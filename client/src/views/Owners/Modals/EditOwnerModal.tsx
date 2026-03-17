@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
-import { useUpdateOwner } from "@/api/useOwner";
+import { useUpdateOwner } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
 
 interface EditFormValues {

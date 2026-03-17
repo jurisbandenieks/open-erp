@@ -11,7 +11,7 @@ import {
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
-import { useUpdateUser } from "@/api/useUser";
+import { useUpdateUser } from "@/hooks/useUser";
 import type { User } from "@/types/User.model";
 
 interface EditFormValues {

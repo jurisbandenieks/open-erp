@@ -13,7 +13,7 @@ import {
 import { DatePickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useCreateAbsence, useUpdateAbsence } from "@/api/useAbsence";
+import { useCreateAbsence, useUpdateAbsence } from "@/hooks/useAbsence";
 import { AbsenceType } from "@/types/Absence.model";
 import type { Absence, CreateAbsenceData } from "@/types/Absence.model";
 

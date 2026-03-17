@@ -13,9 +13,9 @@ import {
   Select
 } from "@mantine/core";
 import { IconPlus, IconAlertCircle, IconSearch } from "@tabler/icons-react";
-import { useEmployees, usePatchEmployee } from "@/api/useEmployee";
-import { useMyCompanies } from "@/api/useCompany";
-import { useMyOwner } from "@/api/useOwner";
+import { useEmployees, usePatchEmployee } from "@/hooks/useEmployee";
+import { useMyCompanies } from "@/hooks/useCompany";
+import { useMyOwner } from "@/hooks/useOwner";
 import { useAuth } from "@/context/AuthContext";
 import type { Employee } from "@/types/Employee.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";

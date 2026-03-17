@@ -5,7 +5,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions
 } from "@tanstack/react-query";
-import { ownerApi } from "./ownerApi";
+import { ownerApi } from "../api/ownerApi";
 import type {
   Owner,
   CreateOwnerPayload,
