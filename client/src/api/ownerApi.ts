@@ -12,30 +12,51 @@ export type {
   UpdateOwnerPayload
 } from "@/types/Owner.model";
 
-const unwrap = <T>(response: { data: { data: T } }): T => response.data.data;
+const OWNER_ENDPOINT = "/owners";
 
 export const ownerApi = {
-  list: (): Promise<Owner[]> =>
-    axiosClient.get<{ data: Owner[] }>("/owners").then(unwrap),
+  list: async (): Promise<Owner[]> => {
+    const { data } = await axiosClient.get<{ data: Owner[] }>(OWNER_ENDPOINT);
+    return data.data;
+  },
 
-  get: (id: string): Promise<Owner> =>
-    axiosClient.get<{ data: Owner }>(`/owners/${id}`).then(unwrap),
+  get: async (id: string): Promise<Owner> => {
+    const { data } = await axiosClient.get<{ data: Owner }>(
+      `${OWNER_ENDPOINT}/${id}`
+    );
+    return data.data;
+  },
 
-  create: (payload: CreateOwnerPayload): Promise<Owner> =>
-    axiosClient.post<{ data: Owner }>("/owners", payload).then(unwrap),
+  create: async (payload: CreateOwnerPayload): Promise<Owner> => {
+    const { data } = await axiosClient.post<{ data: Owner }>(
+      OWNER_ENDPOINT,
+      payload
+    );
+    return data.data;
+  },
 
-  update: (id: string, payload: UpdateOwnerPayload): Promise<Owner> =>
-    axiosClient.put<{ data: Owner }>(`/owners/${id}`, payload).then(unwrap),
+  update: async (id: string, payload: UpdateOwnerPayload): Promise<Owner> => {
+    const { data } = await axiosClient.put<{ data: Owner }>(
+      `${OWNER_ENDPOINT}/${id}`,
+      payload
+    );
+    return data.data;
+  },
 
-  remove: (id: string): Promise<void> =>
-    axiosClient.delete(`/owners/${id}`).then(() => undefined),
+  remove: async (id: string): Promise<void> => {
+    await axiosClient.delete(`${OWNER_ENDPOINT}/${id}`);
+  },
 
-  me: (): Promise<Owner | null> =>
-    axiosClient
-      .get<{ data: Owner }>("/owners/me")
-      .then((res) => res.data.data)
-      .catch((err) => {
-        if (err?.response?.status === 404) return null;
-        throw err;
-      })
+  me: async (): Promise<Owner | null> => {
+    try {
+      const { data } = await axiosClient.get<{ data: Owner }>(
+        `${OWNER_ENDPOINT}/me`
+      );
+      return data.data;
+    } catch (err: unknown) {
+      if ((err as { response?: { status?: number } })?.response?.status === 404)
+        return null;
+      throw err;
+    }
+  }
 };
