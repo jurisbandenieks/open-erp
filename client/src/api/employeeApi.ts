@@ -4,6 +4,7 @@ import type {
   CreateEmployeeData,
   UpdateEmployeeData
 } from "@/types/Employee.model";
+import type { PaginatedResponse } from "@/types";
 
 const EMPLOYEE_ENDPOINT = "/employees";
 
@@ -24,13 +25,11 @@ export const employeeApi = {
     search?: string;
     department?: string;
     status?: string;
-  }) => {
-    const { data } = await axiosClient.get<{
-      data: Employee[];
-      total: number;
-      page: number;
-      limit: number;
-    }>(EMPLOYEE_ENDPOINT, { params });
+  }): Promise<PaginatedResponse<Employee>> => {
+    const { data } = await axiosClient.get<PaginatedResponse<Employee>>(
+      EMPLOYEE_ENDPOINT,
+      { params }
+    );
     return data;
   },
 
