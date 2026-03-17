@@ -1,4 +1,5 @@
 import { axiosClient } from "./client";
+import type { PaginatedResponse } from "@/types";
 import type {
   Timelog,
   CreateTimelogData,
@@ -24,12 +25,10 @@ const TIMELOG_ENDPOINT = "/timelogs";
 export const timelogApi = {
   // Get all timelogs with optional filters
   getAll: async (params?: TimelogFilters) => {
-    const { data } = await axiosClient.get<{
-      data: Timelog[];
-      total: number;
-      page: number;
-      limit: number;
-    }>(TIMELOG_ENDPOINT, { params });
+    const { data } = await axiosClient.get<PaginatedResponse<Timelog>>(
+      TIMELOG_ENDPOINT,
+      { params }
+    );
     return data;
   },
 
