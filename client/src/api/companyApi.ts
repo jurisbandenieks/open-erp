@@ -23,15 +23,19 @@ export type CompanyListResponse = PaginatedResponse<Company>;
 const MANAGE_ENDPOINT = "/companies/manage";
 
 export const companyApi = {
-  list: (): Promise<CompanyOption[]> =>
-    axiosClient
-      .get<{ data: CompanyOption[] }>("/companies")
-      .then((res) => res.data.data),
+  list: async (): Promise<CompanyOption[]> => {
+    const { data } = await axiosClient.get<{ data: CompanyOption[] }>(
+      "/companies"
+    );
+    return data.data;
+  },
 
-  mine: (): Promise<CompanyOption[]> =>
-    axiosClient
-      .get<{ data: CompanyOption[] }>("/companies/mine")
-      .then((res) => res.data.data),
+  mine: async (): Promise<CompanyOption[]> => {
+    const { data } = await axiosClient.get<{ data: CompanyOption[] }>(
+      "/companies/mine"
+    );
+    return data.data;
+  },
 
   getAll: async (params?: CompanyListParams): Promise<CompanyListResponse> => {
     const { data } = await axiosClient.get<CompanyListResponse>(
