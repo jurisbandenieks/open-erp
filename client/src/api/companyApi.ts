@@ -4,6 +4,7 @@ import type {
   CreateCompanyPayload,
   UpdateCompanyPayload
 } from "@/types/Entity.model";
+import type { PaginatedResponse } from "@/types";
 
 export interface CompanyOption {
   id: string;
@@ -17,12 +18,7 @@ export interface CompanyListParams {
   status?: string;
 }
 
-export interface CompanyListResponse {
-  data: Company[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type CompanyListResponse = PaginatedResponse<Company>;
 
 const MANAGE_ENDPOINT = "/companies/manage";
 
