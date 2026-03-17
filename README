@@ -1,0 +1,329 @@
+# Open ERP
+
+Open-source Enterprise Resource Planning system for managing employees, companies, time tracking, and absence management.
+
+---
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Setup](#setup)
+  - [Development](#development)
+  - [Production](#production)
+  - [Environment Variables](#environment-variables)
+- [Default Credentials](#default-credentials)
+- [Permission Levels](#permission-levels)
+- [Features](#features)
+  - [Time Logs](#time-logs)
+  - [Absences](#absences)
+  - [Employees](#employees-management)
+  - [Companies](#companies-management)
+  - [Approvals](#approvals)
+  - [Absence Tracker](#absence-tracker)
+  - [Reports](#reports)
+  - [Users](#users-admin)
+  - [Owners](#owners)
+
+---
+
+## Architecture
+
+The application is composed of six Docker services:
+
+| Service    | Description                                    | Port (dev) |
+| ---------- | ---------------------------------------------- | ---------- |
+| `client`   | React SPA (Vite)                               | 3000       |
+| `nginx`    | Reverse proxy — routes `/api/*` and `/auth/*`  | 80         |
+| `api`      | Main REST API (Express + TypeORM)              | 5000       |
+| `auth`     | Authentication service (JWT + Redis blacklist) | 5001       |
+| `postgres` | PostgreSQL 16 database                         | 5432       |
+| `redis`    | Redis 7 (token cache + blacklist)              | 6379       |
+
+**Request flow**: Browser → Nginx (`:80`) → Client / API / Auth  
+**Auth flow**: Every authenticated API request is verified by the API service calling `POST /validate` on the auth service. Results are cached in Redis. Tokens are invalidated on logout via a Redis blacklist.
+
+---
+
+## Tech Stack
+
+| Layer      | Technology                                                     |
+| ---------- | -------------------------------------------------------------- |
+| Frontend   | React 19, TypeScript, Vite, Mantine 8, TanStack Query, AG Grid |
+| Backend    | Node.js, Express 4, TypeORM 0.3, TypeScript                    |
+| Auth       | JWT (access 15 min / refresh 7 days), bcryptjs, ioredis        |
+| Database   | PostgreSQL 16                                                  |
+| Cache      | Redis 7                                                        |
+| Proxy      | Nginx                                                          |
+| Forms      | react-hook-form 7                                              |
+| Validation | Zod (server), react-hook-form (client)                         |
+
+---
+
+## Setup
+
+### Development
+
+Prerequisites: Docker and Docker Compose.
+
+```bash
+git clone <repo-url>
+cd open-erp
+npm run dev
+```
+
+This builds and starts all six services. The app is available at **http://localhost**.
+
+Other useful commands:
+
+```bash
+npm run dev:detached   # start in background
+npm run dev:logs       # tail logs
+npm run dev:restart    # restart all services
+npm run dev:down       # stop and remove containers
+npm run clean          # stop, remove containers, volumes, and orphans
+```
+
+**Database migrations** (run inside service containers or locally after installing deps):
+
+```bash
+cd auth   && npm run migration:run
+cd server && npm run migration:run
+```
+
+The sysadmin account is created automatically on auth service startup (see [Default Credentials](#default-credentials)).
+
+---
+
+### Production
+
+```bash
+docker-compose up --build -d
+```
+
+The production compose file does **not** expose the database or Redis ports to the host. You must supply all required environment variables (see below).
+
+---
+
+### Environment Variables
+
+The development compose file provides working defaults for all variables. For production, create `.env` files or supply them directly.
+
+#### Auth Service
+
+| Variable                 | Default                  | Required |
+| ------------------------ | ------------------------ | -------- |
+| `PORT`                   | `5001`                   |          |
+| `DB_HOST`                | `localhost`              |          |
+| `DB_PORT`                | `5432`                   |          |
+| `DB_NAME`                | —                        | ✓        |
+| `DB_USER`                | —                        | ✓        |
+| `DB_PASSWORD`            | —                        | ✓        |
+| `REDIS_HOST`             | `localhost`              |          |
+| `REDIS_PORT`             | `6379`                   |          |
+| `REDIS_PASSWORD`         | —                        |          |
+| `JWT_SECRET`             | — (min 16 chars)         | ✓        |
+| `JWT_ACCESS_EXPIRES_IN`  | `15m`                    |          |
+| `JWT_REFRESH_EXPIRES_IN` | `7d`                     |          |
+| `SYSADMIN_EMAIL`         | `sysadmin@openerp.local` |          |
+| `SYSADMIN_PASSWORD`      | `Testing1!`              |          |
+| `CORS_ORIGIN`            | `http://localhost:3000`  |          |
+
+#### API Service
+
+| Variable               | Default                 | Required |
+| ---------------------- | ----------------------- | -------- |
+| `PORT`                 | `5000`                  |          |
+| `DB_HOST/PORT/NAME`    | —                       | ✓        |
+| `DB_USER/PASSWORD`     | —                       | ✓        |
+| `REDIS_HOST/PORT`      | —                       |          |
+| `REDIS_PASSWORD`       | —                       |          |
+| `AUTH_SERVICE_URL`     | —                       | ✓        |
+| `CORS_ORIGIN`          | `http://localhost:3000` |          |
+| `RATE_LIMIT_WINDOW_MS` | `900000` (15 min)       |          |
+| `RATE_LIMIT_MAX`       | `100`                   |          |
+
+---
+
+## Default Credentials
+
+On every auth service startup an admin account is created automatically if it does not exist:
+
+| Field    | Default value            | Override via env var |
+| -------- | ------------------------ | -------------------- |
+| Email    | `sysadmin@openerp.local` | `SYSADMIN_EMAIL`     |
+| Password | `Testing1!`              | `SYSADMIN_PASSWORD`  |
+
+**Change these before any production deployment.**
+
+---
+
+## Permission Levels
+
+The application has four effective permission levels derived from the authenticated user's data:
+
+| Level       | Condition                                                               |
+| ----------- | ----------------------------------------------------------------------- |
+| **Admin**   | User account with `role = admin`                                        |
+| **Owner**   | Admin user with a linked `Owner` record (manages one or more companies) |
+| **Manager** | Employee whose record has other employees assigned as managees          |
+| **User**    | Any authenticated user with no special role                             |
+
+### Route Access
+
+| Route                         | Access                   |
+| ----------------------------- | ------------------------ |
+| `/login`, `/register`         | Public                   |
+| `/`, `/timelogs`, `/absences` | Any authenticated user   |
+| `/management/employees`       | Owner or Admin           |
+| `/management/companies`       | Owner or Admin           |
+| `/management/reports`         | Owner or Admin           |
+| `/management/absence-tracker` | Manager, Owner, or Admin |
+| `/management/approvals`       | Manager, Owner, or Admin |
+| `/admin/users`                | Admin only               |
+| `/admin/owners`               | Owner or Admin           |
+
+### Data Scoping
+
+Access to records is also scoped by role server-side:
+
+| Role    | Employees          | Timelogs / Absences | Companies |
+| ------- | ------------------ | ------------------- | --------- |
+| Admin   | All                | All                 | All       |
+| Owner   | Own companies only | Own companies only  | Own only  |
+| Manager | Own managees only  | Own managees only   | —         |
+| User    | Own record only    | Own only            | —         |
+
+---
+
+## Features
+
+### Time Logs
+
+**Route**: `/timelogs` — all authenticated users
+
+Employees track daily work hours per ISO week.
+
+- Week navigator (previous / next / current week).
+- **Employee view**: editable 7-day grid (`EmployeeWeekGrid`). One row per day, create or update entries inline.
+- **Admin / Owner / Manager view**: read-only AG Grid, employee selector dropdown.
+- Bulk-submit all drafts for a week in one click.
+- Weekly hour total badge.
+- **Timelog types**: Standard, Overtime, Holiday, Sick, Other.
+- **Statuses**: Draft → Submitted → Approved / Rejected.
+
+---
+
+### Absences
+
+**Route**: `/absences` — all authenticated users
+
+Employees request and track their own absences.
+
+- Year and status filters. AG Grid table.
+- **Vacation balance panel**: annual allowance, used days, pending days, remaining days.
+- Create absence (date range picker, type selector, notes, time-in-lieu reference).
+- Edit or cancel pending absences.
+- Overlap detection — prevents double-booking.
+- Working-day calculation (Monday–Friday, excluding public holidays).
+- **Absence types**: Vacation, Sick Leave, Personal, Unpaid, Maternity, Paternity, Bereavement, Study, Time in Lieu.
+- **Statuses**: Pending → Approved / Rejected / Cancelled.
+
+---
+
+### Employees Management
+
+**Route**: `/management/employees` — Owner or Admin
+
+Manage the employee roster.
+
+- Company filter (Admin sees all; Owner auto-filters to own companies).
+- AG Grid: name, email, employee number, department, position, employment status, manager/managee counts.
+- **Create employee**: first name, last name, email, employee number, hire date, position, department, company, phone, contract type, salary, working hours/week.
+- **Deactivate**: sets employment status to inactive.
+- **Manage relations**: tabbed modal to assign/remove managers and managees.
+- **Contract types**: Full-time, Part-time, Contract, Intern, Freelance.
+- **Employment statuses**: Active, Inactive, On Leave, Terminated.
+
+---
+
+### Companies Management
+
+**Route**: `/management/companies` — Owner or Admin
+
+Manage company records.
+
+- Search by name, filter by status. AG Grid.
+- Admin sees all companies; Owner sees only their own.
+- **Create company**: name, registration number (unique), VAT number, currency, owner, email, phone, website, address, city, country, founded date, description.
+- **Edit company**: all fields except registration number; includes status management.
+- **Deactivate** (no hard delete).
+- **Statuses**: Active, Inactive, Suspended.
+
+---
+
+### Approvals
+
+**Route**: `/management/approvals` — Manager, Owner, or Admin
+
+Review and approve or reject employee time logs by week.
+
+- ISO week navigator.
+- Per-employee weekly summary: total hours, per-status counts (draft / submitted / approved / rejected).
+- **Approve week**: bulk-approves all submitted timelogs for that employee's week.
+- **Reject week**: bulk-rejects with a mandatory rejection reason.
+- Scoped by role: Admin sees all, Owner sees own companies, Manager sees managees only.
+
+---
+
+### Absence Tracker
+
+**Route**: `/management/absence-tracker` — Manager, Owner, or Admin
+
+Review absence requests from employees in scope.
+
+- Year, status, and employee filters. AG Grid.
+- Detail view per absence: employee, type, date range, working days, status, notes.
+- **Approve** or **Reject** (rejection requires a reason).
+- Scoped same as Approvals.
+
+---
+
+### Reports
+
+**Route**: `/management/reports` — Owner or Admin
+
+Aggregated time reporting across employees.
+
+- Date range selector (start date / end date) and employee filter.
+- Per-employee breakdown by **type** (standard / overtime / holiday / sick / other) and by **status** (draft / submitted / approved / rejected).
+- Aggregate totals row.
+
+---
+
+### Users (Admin)
+
+**Route**: `/admin/users` — Admin only
+
+Full user account management.
+
+- AG Grid of all user accounts.
+- **Create user**: email, password, first name, last name, role.
+- **Edit user**: first name, last name, email, role, status.
+- **Delete user**: permanent removal.
+- Effective role display: an admin with an Owner record is shown as "Owner"; a user with managees is shown as "Manager".
+- **User statuses**: Active, Inactive, Suspended, Pending.
+
+---
+
+### Owners
+
+**Route**: `/admin/owners` — Owner or Admin
+
+Manage Owner records (in practice, typically admin-only).
+
+- AG Grid of all owners with linked user accounts.
+- **Create owner**: atomically creates a linked user account (`role = admin`) and the Owner record. Fields: first name, last name, email, password, display name, tax ID.
+- **Edit owner**: name, email, phone, address, display name, tax ID, owner status.
+- **Delete owner**: permanently removes both the Owner record and the linked user account.
+- **Owner statuses**: Active, Inactive, Suspended.
