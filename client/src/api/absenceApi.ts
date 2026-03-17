@@ -1,4 +1,5 @@
 import { axiosClient } from "./client";
+import type { PaginatedResponse } from "@/types";
 import type {
   Absence,
   AbsenceFilters,
@@ -12,13 +13,10 @@ const ABSENCE_ENDPOINT = "/absences";
 
 export const absenceApi = {
   getAll: async (params?: AbsenceFilters) => {
-    const { data } = await axiosClient.get<{
-      data: Absence[];
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    }>(ABSENCE_ENDPOINT, { params });
+    const { data } = await axiosClient.get<PaginatedResponse<Absence>>(
+      ABSENCE_ENDPOINT,
+      { params }
+    );
     return data;
   },
 

@@ -1,4 +1,11 @@
 import axios from "axios";
+import type {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload
+} from "@/types/User.model";
+
+export type { AuthResponse, LoginPayload, RegisterPayload };
 
 const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "/auth";
 
@@ -8,30 +15,6 @@ export const authClient = axios.create({
     "Content-Type": "application/json"
   }
 });
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
 
 export const authApi = {
   register: async (payload: RegisterPayload): Promise<void> => {
