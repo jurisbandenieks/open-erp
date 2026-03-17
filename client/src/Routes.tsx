@@ -17,6 +17,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { Absences } from "./views/Absences/Absences";
 import { AbsencesManagement } from "./views/AbsencesManagement/AbsencesManagement";
 import { Approvals } from "./views/Approvals/Approvals";
+import { Reports } from "./views/Reports/Reports";
 
 const AppRoutes = () => {
   return (
@@ -40,7 +41,7 @@ const AppRoutes = () => {
                 <Route element={<OwnerOrAdminRoute />}>
                   <Route path="employees" element={<Employees />} />
                   <Route path="companies" element={<Companies />} />
-                  <Route path="reports" element={<div>Reports</div>} />
+                  <Route path="reports" element={<Reports />} />
                 </Route>
                 <Route element={<ManagerOrOwnerOrAdminRoute />}>
                   <Route

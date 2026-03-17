@@ -24,7 +24,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/", ...listTimelogs);
-router.get("/summary", getTimelogSummary);
+router.get("/summary", ...getTimelogSummary);
 router.get("/weekly-approvals", ...listWeeklyApprovals);
 router.get("/employee/:employeeId", ...getTimelogsByEmployee);
 router.get("/entity/:entityId", getTimelogsByEntity);

@@ -1,0 +1,40 @@
+# Reports
+
+Management view for owners and admins to review employee timelog activity across a custom date range.
+
+## Access
+
+Route: `/management/reports`
+Guard: `OwnerOrAdminRoute` (owner or admin only)
+
+## Planned Behaviour
+
+- **Date range selector** — two date pickers (start/end) to define the reporting window
+- **Employee filter** — dropdown of employees scoped to the user's companies (owner) or all employees (admin)
+- **Summary table** — per-employee breakdown showing:
+  - Total hours logged
+  - Hours by type (standard, overtime, holiday, sick, other)
+  - Hours by status (draft, submitted, approved, rejected)
+- **Aggregate totals** — footer row or summary cards with totals across all filtered employees
+
+## Data
+
+Client: `timelogApi.getSummary({ employeeId?, startDate, endDate })` → `GET /timelogs/summary`
+
+Server: `getTimelogSummary` in `timelogController.ts` — currently a stub returning `{}`.
+
+The endpoint needs to be implemented to accept `employeeId?`, `startDate`, `endDate` query params and return aggregated hours grouped by type and status.
+
+## File Structure
+
+```
+Reports/
+  README
+  Reports.tsx          (to be created)
+```
+
+## Implementation Notes
+
+- Owner scope: only employees belonging to companies the owner manages (same pattern as `getScopedEmployeeIds` used in Approvals)
+- Admin scope: all employees, no restriction
+- Use `useTimelogSummary` hook from `useTimelog.tsx` once the server endpoint is implemented

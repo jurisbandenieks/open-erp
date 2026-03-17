@@ -77,6 +77,14 @@ const bulkSubmitSchema = z.object({
     .min(1, "At least one timelog ID required")
 });
 
+const summarySchema = z.object({
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date (YYYY-MM-DD)"),
+  employeeId: z.string().uuid().optional()
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const toDto = (t: Timelog) => ({
@@ -102,6 +110,35 @@ const toDto = (t: Timelog) => ({
   createdAt: t.createdAt,
   updatedAt: t.updatedAt
 });
+
+/**
+ * Throws a 409 if the employee already has a timelog for the same date+type.
+ * Pass excludeId to ignore the current record when updating.
+ */
+const checkDuplicate = async (
+  employeeId: string,
+  date: string,
+  type: TimelogType,
+  excludeId?: string
+) => {
+  const qb = timelogRepo()
+    .createQueryBuilder("t")
+    .where("t.employeeId = :employeeId", { employeeId })
+    .andWhere("DATE(t.date) = DATE(:date)", { date })
+    .andWhere("t.type = :type", { type });
+
+  if (excludeId) {
+    qb.andWhere("t.id != :excludeId", { excludeId });
+  }
+
+  const existing = await qb.getOne();
+  if (existing) {
+    throw new AppError(
+      `A ${type} timelog for this employee on ${date} already exists.`,
+      409
+    );
+  }
+};
 
 /**
  * Returns the set of employeeIds visible to the requesting user.
@@ -230,6 +267,8 @@ export const createTimelog = [
       });
       if (!employee) throw new AppError("Employee not found", 404);
 
+      await checkDuplicate(dto.employeeId, dto.date, dto.type);
+
       const timelog = timelogRepo().create({
         employeeId: dto.employeeId,
         date: new Date(dto.date) as unknown as Date,
@@ -264,6 +303,17 @@ export const updateTimelog = [
       const t = await timelogRepo().findOne({ where: { id: req.params.id } });
       if (!t) throw new AppError("Timelog not found", 404);
 
+      // Only check for duplicates if date or type is actually changing
+      const rawDate =
+        typeof t.date === "string"
+          ? t.date
+          : t.date!.toISOString().split("T")[0];
+      const newDate = dto.date ?? rawDate;
+      const newType = dto.type ?? t.type;
+      if (dto.date !== undefined || dto.type !== undefined) {
+        await checkDuplicate(t.employeeId!, newDate, newType, t.id);
+      }
+
       if (dto.date !== undefined)
         t.date = new Date(dto.date) as unknown as Date;
       if (dto.totalHours !== undefined) t.totalHours = dto.totalHours;
@@ -295,6 +345,17 @@ export const patchTimelog = [
       const dto = req.body as Partial<z.infer<typeof updateSchema>>;
       const t = await timelogRepo().findOne({ where: { id: req.params.id } });
       if (!t) throw new AppError("Timelog not found", 404);
+
+      // Only check for duplicates if date or type is actually changing
+      const rawDate =
+        typeof t.date === "string"
+          ? t.date
+          : t.date!.toISOString().split("T")[0];
+      const newDate = dto.date ?? rawDate;
+      const newType = dto.type ?? t.type;
+      if (dto.date !== undefined || dto.type !== undefined) {
+        await checkDuplicate(t.employeeId!, newDate, newType, t.id);
+      }
 
       if (dto.date !== undefined)
         t.date = new Date(dto.date) as unknown as Date;
@@ -329,9 +390,105 @@ export const removeTimelog = async (
 
 // ─── Approval workflow ────────────────────────────────────────────────────────
 
-export const getTimelogSummary = (_req: Request, res: Response) => {
-  res.json({ success: true, data: {} });
-};
+export const getTimelogSummary = [
+  validate(summarySchema, "query"),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate, employeeId } = req.query as z.infer<
+        typeof summarySchema
+      >;
+      const user = req.user!;
+      const isAdmin = user.roles.includes("admin");
+
+      let scopedIds: string[] | null = null;
+      if (!isAdmin) {
+        scopedIds = await getScopedEmployeeIds(user.userId);
+        if (scopedIds !== null && scopedIds.length === 0) {
+          return res.json({
+            success: true,
+            data: [],
+            totals: { totalHours: 0, byType: {}, byStatus: {} }
+          });
+        }
+      }
+
+      const qb = timelogRepo()
+        .createQueryBuilder("t")
+        .leftJoinAndSelect("t.employee", "employee")
+        .leftJoinAndSelect("employee.user", "user")
+        .where("t.date >= :startDate", { startDate })
+        .andWhere("t.date <= :endDate", { endDate });
+
+      if (employeeId) {
+        qb.andWhere("t.employeeId = :employeeId", { employeeId });
+      } else if (scopedIds !== null) {
+        qb.andWhere("t.employeeId IN (:...scopedIds)", { scopedIds });
+      }
+
+      const timelogs = await qb.getMany();
+
+      // Group by employee
+      const byEmployee = new Map<
+        string,
+        { name: string; rows: typeof timelogs }
+      >();
+      for (const t of timelogs) {
+        if (!t.employeeId) continue;
+        if (!byEmployee.has(t.employeeId)) {
+          const name = t.employee?.user
+            ? `${t.employee.user.firstName} ${t.employee.user.lastName}`
+            : t.employeeId;
+          byEmployee.set(t.employeeId, { name, rows: [] });
+        }
+        byEmployee.get(t.employeeId)!.rows.push(t);
+      }
+
+      const data = Array.from(byEmployee.entries()).map(
+        ([eid, { name, rows }]) => {
+          const byType: Record<string, number> = {};
+          const byStatus: Record<string, number> = {};
+          let totalHours = 0;
+          for (const t of rows) {
+            const h = Number(t.totalHours);
+            totalHours += h;
+            byType[t.type] = (byType[t.type] ?? 0) + h;
+            byStatus[t.status] = (byStatus[t.status] ?? 0) + h;
+          }
+          return {
+            employeeId: eid,
+            employeeName: name,
+            totalHours,
+            byType,
+            byStatus
+          };
+        }
+      );
+
+      // Aggregate totals across all employees
+      const totals = data.reduce(
+        (acc, row) => {
+          acc.totalHours += row.totalHours;
+          for (const [k, v] of Object.entries(row.byType)) {
+            acc.byType[k] = (acc.byType[k] ?? 0) + v;
+          }
+          for (const [k, v] of Object.entries(row.byStatus)) {
+            acc.byStatus[k] = (acc.byStatus[k] ?? 0) + v;
+          }
+          return acc;
+        },
+        {
+          totalHours: 0,
+          byType: {} as Record<string, number>,
+          byStatus: {} as Record<string, number>
+        }
+      );
+
+      res.json({ success: true, data, totals });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
 
 export const getTimelogsByEntity = (_req: Request, res: Response) => {
   res.json({ success: true, data: [] });

@@ -172,10 +172,9 @@ export const useTimelogsByEntity = (
 // Get timelog summary
 export const useTimelogSummary = (
   params: {
-    employeeId?: string;
-    entityId?: string;
     startDate: string;
     endDate: string;
+    employeeId?: string;
   },
   options?: Omit<
     UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getSummary>>>,
@@ -183,7 +182,7 @@ export const useTimelogSummary = (
   >
 ) => {
   return useQuery({
-    queryKey: timelogKeys.summary(params),
+    queryKey: timelogKeys.summary({ ...params, entityId: undefined }),
     queryFn: () => timelogApi.getSummary(params),
     enabled: !!params.startDate && !!params.endDate,
     ...options

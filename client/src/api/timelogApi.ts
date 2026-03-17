@@ -21,6 +21,20 @@ export interface TimelogFilters {
   approved?: boolean;
 }
 
+export interface EmployeeReportRow {
+  employeeId: string;
+  employeeName: string;
+  totalHours: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+}
+
+export interface ReportTotals {
+  totalHours: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+}
+
 export interface WeeklyApprovalSummary {
   employeeId: string;
   employeeName: string;
@@ -212,20 +226,14 @@ export const timelogApi = {
 
   // Get timelog summary/statistics
   getSummary: async (params: {
-    employeeId?: string;
-    entityId?: string;
     startDate: string;
     endDate: string;
+    employeeId?: string;
   }) => {
     const { data } = await axiosClient.get<{
-      totalHours: number;
-      billableHours: number;
-      nonBillableHours: number;
-      overtimeHours: number;
-      remoteHours: number;
-      totalEntries: number;
-      byStatus: Record<string, number>;
-      byType: Record<string, number>;
+      success: boolean;
+      data: EmployeeReportRow[];
+      totals: ReportTotals;
     }>(`${TIMELOG_ENDPOINT}/summary`, { params });
     return data;
   },
