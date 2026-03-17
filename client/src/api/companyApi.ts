@@ -1,24 +1,12 @@
 import { axiosClient } from "./client";
 import type {
   Company,
+  CompanyOption,
+  CompanyListParams,
   CreateCompanyPayload,
   UpdateCompanyPayload
 } from "@/types/Entity.model";
 import type { PaginatedResponse } from "@/types";
-
-export interface CompanyOption {
-  id: string;
-  name: string;
-}
-
-export interface CompanyListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-}
-
-export type CompanyListResponse = PaginatedResponse<Company>;
 
 const MANAGE_ENDPOINT = "/companies/manage";
 
@@ -37,8 +25,10 @@ export const companyApi = {
     return data.data;
   },
 
-  getAll: async (params?: CompanyListParams): Promise<CompanyListResponse> => {
-    const { data } = await axiosClient.get<CompanyListResponse>(
+  getAll: async (
+    params?: CompanyListParams
+  ): Promise<PaginatedResponse<Company>> => {
+    const { data } = await axiosClient.get<PaginatedResponse<Company>>(
       MANAGE_ENDPOINT,
       { params }
     );

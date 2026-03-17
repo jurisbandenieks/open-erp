@@ -4,14 +4,12 @@ import {
   useQueryClient,
   type UseQueryOptions
 } from "@tanstack/react-query";
-import {
-  companyApi,
-  type CompanyOption,
-  type CompanyListParams,
-  type CompanyListResponse
-} from "./companyApi";
+import { companyApi } from "./companyApi";
+import type { PaginatedResponse } from "@/types";
 import type {
   Company,
+  CompanyOption,
+  CompanyListParams,
   CreateCompanyPayload,
   UpdateCompanyPayload
 } from "@/types/Entity.model";
@@ -48,7 +46,10 @@ export const useMyCompanies = (
 
 export const useAllCompanies = (
   params?: CompanyListParams,
-  options?: Omit<UseQueryOptions<CompanyListResponse>, "queryKey" | "queryFn">
+  options?: Omit<
+    UseQueryOptions<PaginatedResponse<Company>>,
+    "queryKey" | "queryFn"
+  >
 ) => {
   return useQuery({
     queryKey: companyKeys.manageList(params),

@@ -60,4 +60,16 @@ export interface UpdateCompanyPayload {
   status?: CompanyStatus;
 }
 
+export interface CompanyOption {
+  id: string;
+  name: string;
+}
+
+export interface CompanyListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
 // ─── Generic entity (projects, engagements, etc.) ────────────────────────────
