@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Modal,
   Stack,
@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { useForm, Controller } from "react-hook-form";
 import { useUpdateCompany } from "@/hooks/useCompany";
 import type { Company, CompanyStatus } from "@/types/Company.model";
 
@@ -25,7 +26,7 @@ interface Props {
   onClose: () => void;
 }
 
-type FormState = {
+interface FormValues {
   name: string;
   vatNumber: string;
   description: string;
@@ -37,28 +38,36 @@ type FormState = {
   country: string;
   currency: string;
   status: string;
-};
+}
 
 export function EditCompanyModal({ company, onClose }: Props) {
-  const [form, setForm] = useState<FormState>({
-    name: "",
-    vatNumber: "",
-    description: "",
-    website: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "",
-    country: "",
-    currency: "",
-    status: "active"
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors }
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+      vatNumber: "",
+      description: "",
+      website: "",
+      phone: "",
+      email: "",
+      address: "",
+      city: "",
+      country: "",
+      currency: "",
+      status: "active"
+    }
   });
 
   const updateCompany = useUpdateCompany();
 
   useEffect(() => {
     if (company) {
-      setForm({
+      reset({
         name: company.name ?? "",
         vatNumber: company.vatNumber ?? "",
         description: company.description ?? "",
@@ -72,34 +81,26 @@ export function EditCompanyModal({ company, onClose }: Props) {
         status: company.status ?? "active"
       });
     }
-  }, [company]);
+  }, [company, reset]);
 
-  const setStr =
-    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.currentTarget.value }));
-
-  const set = (field: keyof FormState) => (value: string | null) =>
-    setForm((prev) => ({ ...prev, [field]: value ?? "" }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: FormValues) => {
     if (!company) return;
 
     updateCompany.mutate(
       {
         id: company.id,
         payload: {
-          ...(form.name ? { name: form.name } : {}),
-          ...(form.vatNumber ? { vatNumber: form.vatNumber } : {}),
-          ...(form.description ? { description: form.description } : {}),
-          ...(form.website ? { website: form.website } : {}),
-          ...(form.phone ? { phone: form.phone } : {}),
-          ...(form.email ? { email: form.email } : {}),
-          ...(form.address ? { address: form.address } : {}),
-          ...(form.city ? { city: form.city } : {}),
-          ...(form.country ? { country: form.country } : {}),
-          ...(form.currency ? { currency: form.currency } : {}),
-          status: form.status as CompanyStatus
+          name: data.name || undefined,
+          vatNumber: data.vatNumber || undefined,
+          description: data.description || undefined,
+          website: data.website || undefined,
+          phone: data.phone || undefined,
+          email: data.email || undefined,
+          address: data.address || undefined,
+          city: data.city || undefined,
+          country: data.country || undefined,
+          currency: data.currency || undefined,
+          status: data.status as CompanyStatus
         }
       },
       {
@@ -133,7 +134,7 @@ export function EditCompanyModal({ company, onClose }: Props) {
       size="lg"
       title="Edit Company"
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack gap="md">
           {updateCompany.error && (
             <Alert
@@ -149,76 +150,48 @@ export function EditCompanyModal({ company, onClose }: Props) {
             <TextInput
               label="Company name"
               required
-              value={form.name}
-              onChange={setStr("name")}
+              error={errors.name?.message}
+              {...register("name", { required: "Company name is required" })}
             />
-            <Select
-              label="Status"
-              required
-              data={STATUS_OPTIONS}
-              value={form.status}
-              onChange={set("status")}
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Status"
+                  required
+                  data={STATUS_OPTIONS}
+                  value={field.value}
+                  onChange={(v) => field.onChange(v ?? "active")}
+                />
+              )}
             />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="VAT number"
-              value={form.vatNumber}
-              onChange={setStr("vatNumber")}
-            />
+            <TextInput label="VAT number" {...register("vatNumber")} />
             <TextInput
               label="Currency"
               placeholder="e.g. EUR"
-              value={form.currency}
-              onChange={setStr("currency")}
+              {...register("currency")}
             />
           </SimpleGrid>
 
-          <TextInput
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={setStr("email")}
-          />
+          <TextInput label="Email" type="email" {...register("email")} />
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="Phone"
-              value={form.phone}
-              onChange={setStr("phone")}
-            />
-            <TextInput
-              label="Website"
-              value={form.website}
-              onChange={setStr("website")}
-            />
+            <TextInput label="Phone" {...register("phone")} />
+            <TextInput label="Website" {...register("website")} />
           </SimpleGrid>
 
-          <TextInput
-            label="Address"
-            value={form.address}
-            onChange={setStr("address")}
-          />
+          <TextInput label="Address" {...register("address")} />
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="City"
-              value={form.city}
-              onChange={setStr("city")}
-            />
-            <TextInput
-              label="Country"
-              value={form.country}
-              onChange={setStr("country")}
-            />
+            <TextInput label="City" {...register("city")} />
+            <TextInput label="Country" {...register("country")} />
           </SimpleGrid>
 
-          <TextInput
-            label="Description"
-            value={form.description}
-            onChange={setStr("description")}
-          />
+          <TextInput label="Description" {...register("description")} />
 
           <Group justify="flex-end" mt="sm">
             <Button variant="default" onClick={handleClose}>

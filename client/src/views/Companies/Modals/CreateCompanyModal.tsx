@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
   Modal,
   Stack,
@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { useForm, Controller } from "react-hook-form";
 import { useCreateCompany } from "@/hooks/useCompany";
 import { useOwners } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
@@ -22,21 +23,21 @@ interface Props {
   isAdmin: boolean;
 }
 
-const EMPTY_FORM = {
-  name: "",
-  registrationNumber: "",
-  vatNumber: "",
-  description: "",
-  website: "",
-  phone: "",
-  email: "",
-  address: "",
-  city: "",
-  country: "",
-  currency: "",
-  foundedAt: "",
-  ownerId: ""
-};
+interface FormValues {
+  name: string;
+  registrationNumber: string;
+  vatNumber: string;
+  description: string;
+  website: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  country: string;
+  currency: string;
+  foundedAt: string;
+  ownerId: string;
+}
 
 export function CreateCompanyModal({
   opened,
@@ -44,57 +45,64 @@ export function CreateCompanyModal({
   myOwner,
   isAdmin
 }: Props) {
-  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors }
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+      registrationNumber: "",
+      vatNumber: "",
+      description: "",
+      website: "",
+      phone: "",
+      email: "",
+      address: "",
+      city: "",
+      country: "",
+      currency: "",
+      foundedAt: "",
+      ownerId: ""
+    }
+  });
 
   const createCompany = useCreateCompany();
   const { data: owners = [] } = useOwners({ enabled: isAdmin });
 
-  const setStr =
-    (field: keyof typeof EMPTY_FORM) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.currentTarget.value }));
+  useEffect(() => {
+    if (!opened) reset();
+  }, [opened, reset]);
 
-  const set = (field: keyof typeof EMPTY_FORM) => (value: string | null) =>
-    setForm((prev) => ({ ...prev, [field]: value ?? "" }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const effectiveOwnerId = isAdmin ? form.ownerId : (myOwner?.id ?? "");
-
-    if (!effectiveOwnerId) {
-      notifications.show({
-        title: "Error",
-        message: "Please select an owner",
-        color: "red"
-      });
-      return;
-    }
+  const onSubmit = (data: FormValues) => {
+    const effectiveOwnerId = isAdmin ? data.ownerId : (myOwner?.id ?? "");
 
     createCompany.mutate(
       {
-        name: form.name,
-        registrationNumber: form.registrationNumber,
+        name: data.name,
+        registrationNumber: data.registrationNumber,
         ownerId: effectiveOwnerId,
-        ...(form.vatNumber ? { vatNumber: form.vatNumber } : {}),
-        ...(form.description ? { description: form.description } : {}),
-        ...(form.website ? { website: form.website } : {}),
-        ...(form.phone ? { phone: form.phone } : {}),
-        ...(form.email ? { email: form.email } : {}),
-        ...(form.address ? { address: form.address } : {}),
-        ...(form.city ? { city: form.city } : {}),
-        ...(form.country ? { country: form.country } : {}),
-        ...(form.currency ? { currency: form.currency } : {}),
-        ...(form.foundedAt ? { foundedAt: form.foundedAt } : {})
+        vatNumber: data.vatNumber || undefined,
+        description: data.description || undefined,
+        website: data.website || undefined,
+        phone: data.phone || undefined,
+        email: data.email || undefined,
+        address: data.address || undefined,
+        city: data.city || undefined,
+        country: data.country || undefined,
+        currency: data.currency || undefined,
+        foundedAt: data.foundedAt || undefined
       },
       {
         onSuccess: () => {
           notifications.show({
             title: "Company created",
-            message: `"${form.name}" has been created.`,
+            message: `"${data.name}" has been created.`,
             color: "green"
           });
-          setForm({ ...EMPTY_FORM });
+          reset();
           onClose();
         },
         onError: (err: unknown) => {
@@ -108,7 +116,7 @@ export function CreateCompanyModal({
   };
 
   const handleClose = () => {
-    setForm({ ...EMPTY_FORM });
+    reset();
     createCompany.reset();
     onClose();
   };
@@ -120,7 +128,7 @@ export function CreateCompanyModal({
 
   return (
     <Modal opened={opened} onClose={handleClose} size="lg" title="New Company">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack gap="md">
           {createCompany.error && (
             <Alert
@@ -136,40 +144,45 @@ export function CreateCompanyModal({
             <TextInput
               label="Company name"
               required
-              value={form.name}
-              onChange={setStr("name")}
+              error={errors.name?.message}
+              {...register("name", { required: "Company name is required" })}
             />
             <TextInput
               label="Registration number"
               required
-              value={form.registrationNumber}
-              onChange={setStr("registrationNumber")}
+              error={errors.registrationNumber?.message}
+              {...register("registrationNumber", {
+                required: "Registration number is required"
+              })}
             />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="VAT number"
-              value={form.vatNumber}
-              onChange={setStr("vatNumber")}
-            />
+            <TextInput label="VAT number" {...register("vatNumber")} />
             <TextInput
               label="Currency"
               placeholder="e.g. EUR"
-              value={form.currency}
-              onChange={setStr("currency")}
+              {...register("currency")}
             />
           </SimpleGrid>
 
           {isAdmin ? (
-            <Select
-              label="Owner"
-              required
-              placeholder="Select owner"
-              data={ownerOptions}
-              value={form.ownerId || null}
-              onChange={set("ownerId")}
-              searchable
+            <Controller
+              name="ownerId"
+              control={control}
+              rules={{ required: "Owner is required" }}
+              render={({ field, fieldState }) => (
+                <Select
+                  label="Owner"
+                  required
+                  placeholder="Select owner"
+                  data={ownerOptions}
+                  value={field.value || null}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  error={fieldState.error?.message}
+                  searchable
+                />
+              )}
             />
           ) : (
             <TextInput
@@ -184,59 +197,29 @@ export function CreateCompanyModal({
             />
           )}
 
-          <TextInput
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={setStr("email")}
-          />
+          <TextInput label="Email" type="email" {...register("email")} />
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="Phone"
-              value={form.phone}
-              onChange={setStr("phone")}
-            />
-            <TextInput
-              label="Website"
-              value={form.website}
-              onChange={setStr("website")}
-            />
+            <TextInput label="Phone" {...register("phone")} />
+            <TextInput label="Website" {...register("website")} />
           </SimpleGrid>
 
-          <TextInput
-            label="Address"
-            value={form.address}
-            onChange={setStr("address")}
-          />
+          <TextInput label="Address" {...register("address")} />
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="City"
-              value={form.city}
-              onChange={setStr("city")}
-            />
-            <TextInput
-              label="Country"
-              value={form.country}
-              onChange={setStr("country")}
-            />
+            <TextInput label="City" {...register("city")} />
+            <TextInput label="Country" {...register("country")} />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
             <TextInput
               label="Founded date"
               type="date"
-              value={form.foundedAt}
-              onChange={setStr("foundedAt")}
+              {...register("foundedAt")}
             />
           </SimpleGrid>
 
-          <TextInput
-            label="Description"
-            value={form.description}
-            onChange={setStr("description")}
-          />
+          <TextInput label="Description" {...register("description")} />
 
           <Group justify="flex-end" mt="sm">
             <Button variant="default" onClick={handleClose}>

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Modal,
   Stack,
@@ -10,6 +9,7 @@ import {
   Divider
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useForm } from "react-hook-form";
 import { useReviewAbsence } from "@/hooks/useAbsence";
 import { STATUS_COLORS, TYPE_LABELS } from "@/views/Absences/Absences.columns";
 import { DetailRow } from "@/components/DetailRow/DetailRow";
@@ -22,18 +22,22 @@ interface Props {
 }
 
 export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
-  const [rejectionReason, setRejectionReason] = useState("");
+  const {
+    register,
+    getValues,
+    reset,
+    setError,
+    formState: { errors }
+  } = useForm({ defaultValues: { rejectionReason: "" } });
+
   const reviewAbsence = useReviewAbsence();
 
   if (!absence) return null;
 
   const handleReview = (status: "approved" | "rejected") => {
+    const rejectionReason = getValues("rejectionReason");
     if (status === "rejected" && !rejectionReason.trim()) {
-      notifications.show({
-        title: "Validation error",
-        message: "Please provide a rejection reason",
-        color: "red"
-      });
+      setError("rejectionReason", { message: "Rejection reason is required" });
       return;
     }
 
@@ -55,7 +59,7 @@ export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
             message: `The absence has been ${status}.`,
             color: status === "approved" ? "green" : "red"
           });
-          setRejectionReason("");
+          reset();
           onClose();
         },
         onError: (err: unknown) => {
@@ -69,7 +73,7 @@ export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
   };
 
   const handleClose = () => {
-    setRejectionReason("");
+    reset();
     onClose();
   };
 
@@ -118,10 +122,10 @@ export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
         <Textarea
           label="Rejection reason"
           placeholder="Required when rejecting"
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.currentTarget.value)}
-          rows={3}
           description="Leave blank if approving"
+          error={errors.rejectionReason?.message}
+          rows={3}
+          {...register("rejectionReason")}
         />
 
         <Group justify="flex-end">

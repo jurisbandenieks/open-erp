@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Modal,
   Stack,
@@ -10,10 +10,10 @@ import {
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
+import { useForm, Controller } from "react-hook-form";
 import { useCreateTimelog, useUpdateTimelog } from "@/hooks/useTimelog";
-import type { Timelog } from "@/types/Timelog.model";
+import type { Timelog, TimelogType } from "@/types/Timelog.model";
 import { TYPE_OPTIONS } from "../constants";
-import type { TimelogType } from "@/types/Timelog.model";
 import dayjs from "dayjs";
 
 interface Props {
@@ -24,13 +24,13 @@ interface Props {
   editTimelog?: Timelog | null;
 }
 
-const EMPTY_FORM = {
-  date: null as Date | null,
-  totalHours: null as number | null,
-  type: "standard" as string,
-  description: "",
-  notes: ""
-};
+interface FormValues {
+  date: Date | null;
+  totalHours: number | null;
+  type: string;
+  description: string;
+  notes: string;
+}
 
 export function CreateTimelogModal({
   opened,
@@ -39,12 +39,20 @@ export function CreateTimelogModal({
   defaultDate,
   editTimelog
 }: Props) {
-  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const { register, handleSubmit, control, reset } = useForm<FormValues>({
+    defaultValues: {
+      date: null,
+      totalHours: null,
+      type: "standard",
+      description: "",
+      notes: ""
+    }
+  });
 
   useEffect(() => {
     if (opened) {
       if (editTimelog) {
-        setForm({
+        reset({
           date: dayjs(editTimelog.date).toDate(),
           totalHours: editTimelog.totalHours,
           type: editTimelog.type,
@@ -52,23 +60,23 @@ export function CreateTimelogModal({
           notes: editTimelog.notes ?? ""
         });
       } else {
-        setForm({
-          ...EMPTY_FORM,
-          date: defaultDate ? dayjs(defaultDate).toDate() : null
+        reset({
+          date: defaultDate ? dayjs(defaultDate).toDate() : null,
+          totalHours: null,
+          type: "standard",
+          description: "",
+          notes: ""
         });
       }
     }
-  }, [opened, defaultDate, editTimelog]);
+  }, [opened, defaultDate, editTimelog, reset]);
 
   const createTimelog = useCreateTimelog();
   const updateTimelog = useUpdateTimelog();
-
   const isPending = createTimelog.isPending || updateTimelog.isPending;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.date || !form.totalHours) {
+  const onSubmit = (data: FormValues) => {
+    if (!data.date || !data.totalHours) {
       notifications.show({
         title: "Validation error",
         message: "Date and hours are required",
@@ -104,11 +112,11 @@ export function CreateTimelogModal({
         {
           id: editTimelog.id,
           data: {
-            date: dayjs(form.date).format("YYYY-MM-DD"),
-            totalHours: form.totalHours,
-            type: form.type as TimelogType,
-            description: form.description || undefined,
-            notes: form.notes || undefined
+            date: dayjs(data.date).format("YYYY-MM-DD"),
+            totalHours: data.totalHours,
+            type: data.type as TimelogType,
+            description: data.description || undefined,
+            notes: data.notes || undefined
           }
         },
         callbacks
@@ -117,11 +125,11 @@ export function CreateTimelogModal({
       createTimelog.mutate(
         {
           employeeId,
-          date: dayjs(form.date).format("YYYY-MM-DD"),
-          totalHours: form.totalHours,
-          type: form.type as TimelogType,
-          ...(form.description ? { description: form.description } : {}),
-          ...(form.notes ? { notes: form.notes } : {})
+          date: dayjs(data.date).format("YYYY-MM-DD"),
+          totalHours: data.totalHours,
+          type: data.type as TimelogType,
+          description: data.description || undefined,
+          notes: data.notes || undefined
         },
         callbacks
       );
@@ -134,53 +142,56 @@ export function CreateTimelogModal({
       onClose={onClose}
       title={editTimelog ? "Edit Timelog Entry" : "Add Timelog Entry"}
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack>
-          <DatePickerInput
-            label="Date"
-            required
-            value={form.date}
-            onChange={(val) =>
-              setForm((f) => ({ ...f, date: val as Date | null }))
-            }
+          <Controller
+            name="date"
+            control={control}
+            rules={{ required: "Date is required" }}
+            render={({ field, fieldState }) => (
+              <DatePickerInput
+                label="Date"
+                required
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+              />
+            )}
           />
-          <NumberInput
-            label="Hours"
-            required
-            min={0}
-            max={24}
-            step={0.5}
-            decimalScale={1}
-            value={form.totalHours ?? ""}
-            onChange={(val) =>
-              setForm((f) => ({
-                ...f,
-                totalHours: typeof val === "number" ? val : null
-              }))
-            }
+          <Controller
+            name="totalHours"
+            control={control}
+            rules={{ required: "Hours are required" }}
+            render={({ field, fieldState }) => (
+              <NumberInput
+                label="Hours"
+                required
+                min={0}
+                max={24}
+                step={0.5}
+                decimalScale={1}
+                value={field.value ?? ""}
+                onChange={(v) =>
+                  field.onChange(typeof v === "number" ? v : null)
+                }
+                error={fieldState.error?.message}
+              />
+            )}
           />
-          <Select
-            label="Type"
-            data={TYPE_OPTIONS}
-            value={form.type}
-            onChange={(val) =>
-              setForm((f) => ({ ...f, type: val ?? "standard" }))
-            }
+          <Controller
+            name="type"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Type"
+                data={TYPE_OPTIONS}
+                value={field.value}
+                onChange={(v) => field.onChange(v ?? "standard")}
+              />
+            )}
           />
-          <Textarea
-            label="Description"
-            value={form.description}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, description: e.currentTarget.value }))
-            }
-          />
-          <Textarea
-            label="Notes"
-            value={form.notes}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, notes: e.currentTarget.value }))
-            }
-          />
+          <Textarea label="Description" {...register("description")} />
+          <Textarea label="Notes" {...register("notes")} />
           <Group justify="flex-end">
             <Button variant="default" onClick={onClose}>
               Cancel

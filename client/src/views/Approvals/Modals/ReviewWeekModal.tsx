@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Modal,
   Stack,
@@ -11,6 +10,7 @@ import {
   SimpleGrid
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useForm } from "react-hook-form";
 import { useBulkReviewWeek } from "@/hooks/useTimelog";
 import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
 import { STATUS_COLORS } from "@/utils/constants";
@@ -22,18 +22,22 @@ interface Props {
 }
 
 export function ReviewWeekModal({ opened, onClose, summary }: Props) {
-  const [rejectionReason, setRejectionReason] = useState("");
+  const {
+    register,
+    getValues,
+    reset,
+    setError,
+    formState: { errors }
+  } = useForm({ defaultValues: { rejectionReason: "" } });
+
   const bulkReview = useBulkReviewWeek();
 
   if (!summary) return null;
 
   const handleReview = (action: "approved" | "rejected") => {
+    const rejectionReason = getValues("rejectionReason");
     if (action === "rejected" && !rejectionReason.trim()) {
-      notifications.show({
-        title: "Validation error",
-        message: "Please provide a rejection reason",
-        color: "red"
-      });
+      setError("rejectionReason", { message: "Rejection reason is required" });
       return;
     }
 
@@ -54,7 +58,7 @@ export function ReviewWeekModal({ opened, onClose, summary }: Props) {
             message: `${updated} timelog${updated !== 1 ? "s" : ""} have been ${action}.`,
             color: action === "approved" ? "green" : "red"
           });
-          setRejectionReason("");
+          reset();
           onClose();
         },
         onError: (err: unknown) => {
@@ -68,7 +72,7 @@ export function ReviewWeekModal({ opened, onClose, summary }: Props) {
   };
 
   const handleClose = () => {
-    setRejectionReason("");
+    reset();
     onClose();
   };
 
@@ -137,10 +141,10 @@ export function ReviewWeekModal({ opened, onClose, summary }: Props) {
           label="Rejection reason"
           description="Required only when rejecting"
           placeholder="Explain why this week is being rejected…"
-          value={rejectionReason}
-          onChange={(e) => setRejectionReason(e.currentTarget.value)}
+          error={errors.rejectionReason?.message}
           minRows={3}
           autosize
+          {...register("rejectionReason")}
         />
 
         <Group justify="flex-end" gap="sm">

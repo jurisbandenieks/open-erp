@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
   Modal,
   Stack,
@@ -10,6 +10,7 @@ import {
   SimpleGrid
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useForm, Controller } from "react-hook-form";
 import { useCreateEmployee } from "@/hooks/useEmployee";
 import type { CompanyOption } from "@/types/Company.model";
 
@@ -28,20 +29,20 @@ interface Props {
   defaultCompanyId?: string | null;
 }
 
-const EMPTY_FORM = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  employeeNumber: "",
-  position: "",
-  department: "",
-  hireDate: "",
-  companyId: "",
-  phoneNumber: "",
-  contractType: "" as string | null,
-  salary: undefined as number | undefined,
-  workingHoursPerWeek: undefined as number | undefined
-};
+interface FormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  employeeNumber: string;
+  position: string;
+  department: string;
+  hireDate: string;
+  companyId: string;
+  phoneNumber: string;
+  contractType: string | null;
+  salary: number | null;
+  workingHoursPerWeek: number | null;
+}
 
 export function CreateEmployeeModal({
   opened,
@@ -49,54 +50,60 @@ export function CreateEmployeeModal({
   companies,
   defaultCompanyId
 }: Props) {
-  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors }
+  } = useForm<FormValues>({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      employeeNumber: "",
+      position: "",
+      department: "",
+      hireDate: "",
+      companyId: "",
+      phoneNumber: "",
+      contractType: null,
+      salary: null,
+      workingHoursPerWeek: null
+    }
+  });
 
   const createEmployee = useCreateEmployee();
 
-  const set = (field: keyof typeof EMPTY_FORM) => (value: unknown) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    if (!opened) reset();
+  }, [opened, reset]);
 
-  const setStr =
-    (field: keyof typeof EMPTY_FORM) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.currentTarget.value }));
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const companyId = form.companyId || defaultCompanyId || "";
-    if (!companyId) {
-      notifications.show({
-        title: "Error",
-        message: "Please select a company",
-        color: "red"
-      });
-      return;
-    }
+  const onSubmit = (data: FormValues) => {
+    const companyId = data.companyId || defaultCompanyId || "";
     createEmployee.mutate(
       {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        employeeNumber: form.employeeNumber,
-        position: form.position,
-        department: form.department,
-        hireDate: form.hireDate,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        employeeNumber: data.employeeNumber,
+        position: data.position,
+        department: data.department,
+        hireDate: data.hireDate,
         companyId,
-        ...(form.phoneNumber ? { phoneNumber: form.phoneNumber } : {}),
-        ...(form.contractType ? { contractType: form.contractType } : {}),
-        ...(form.salary !== undefined ? { salary: form.salary } : {}),
-        ...(form.workingHoursPerWeek !== undefined
-          ? { workingHoursPerWeek: form.workingHoursPerWeek }
-          : {})
+        phoneNumber: data.phoneNumber || undefined,
+        contractType: data.contractType || undefined,
+        salary: data.salary ?? undefined,
+        workingHoursPerWeek: data.workingHoursPerWeek ?? undefined
       },
       {
         onSuccess: () => {
           notifications.show({
             title: "Employee created",
-            message: `${form.firstName} ${form.lastName} has been added.`,
+            message: `${data.firstName} ${data.lastName} has been added.`,
             color: "green"
           });
-          setForm({ ...EMPTY_FORM });
+          reset();
           onClose();
         },
         onError: (err: unknown) => {
@@ -110,7 +117,7 @@ export function CreateEmployeeModal({
   };
 
   const handleClose = () => {
-    setForm({ ...EMPTY_FORM });
+    reset();
     onClose();
   };
 
@@ -119,25 +126,22 @@ export function CreateEmployeeModal({
     label: c.name
   }));
 
-  // Always require an explicit company selection
-  const effectiveCompanyId = form.companyId || defaultCompanyId || "";
-
   return (
     <Modal opened={opened} onClose={handleClose} size="lg" title="New Employee">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack gap="md">
           <SimpleGrid cols={2}>
             <TextInput
               label="First name"
               required
-              value={form.firstName}
-              onChange={setStr("firstName")}
+              error={errors.firstName?.message}
+              {...register("firstName", { required: "First name is required" })}
             />
             <TextInput
               label="Last name"
               required
-              value={form.lastName}
-              onChange={setStr("lastName")}
+              error={errors.lastName?.message}
+              {...register("lastName", { required: "Last name is required" })}
             />
           </SimpleGrid>
 
@@ -145,23 +149,25 @@ export function CreateEmployeeModal({
             label="Email"
             type="email"
             required
-            value={form.email}
-            onChange={setStr("email")}
+            error={errors.email?.message}
+            {...register("email", { required: "Email is required" })}
           />
 
           <SimpleGrid cols={2}>
             <TextInput
               label="Employee number"
               required
-              value={form.employeeNumber}
-              onChange={setStr("employeeNumber")}
+              error={errors.employeeNumber?.message}
+              {...register("employeeNumber", {
+                required: "Employee number is required"
+              })}
             />
             <TextInput
               label="Hire date"
               type="date"
               required
-              value={form.hireDate}
-              onChange={setStr("hireDate")}
+              error={errors.hireDate?.message}
+              {...register("hireDate", { required: "Hire date is required" })}
             />
           </SimpleGrid>
 
@@ -169,57 +175,86 @@ export function CreateEmployeeModal({
             <TextInput
               label="Position"
               required
-              value={form.position}
-              onChange={setStr("position")}
+              error={errors.position?.message}
+              {...register("position", { required: "Position is required" })}
             />
             <TextInput
               label="Department"
               required
-              value={form.department}
-              onChange={setStr("department")}
+              error={errors.department?.message}
+              {...register("department", {
+                required: "Department is required"
+              })}
             />
           </SimpleGrid>
 
-          <Select
-            label="Company"
-            required
-            placeholder="Select company"
-            data={companyOptions}
-            value={form.companyId || defaultCompanyId || null}
-            onChange={set("companyId")}
-            searchable
+          <Controller
+            name="companyId"
+            control={control}
+            rules={{
+              validate: (v) =>
+                !!(v || defaultCompanyId) || "Company is required"
+            }}
+            render={({ field, fieldState }) => (
+              <Select
+                label="Company"
+                required
+                placeholder="Select company"
+                data={companyOptions}
+                value={field.value || defaultCompanyId || null}
+                onChange={(v) => field.onChange(v ?? "")}
+                error={fieldState.error?.message}
+                searchable
+              />
+            )}
           />
 
           <SimpleGrid cols={2}>
-            <TextInput
-              label="Phone number"
-              value={form.phoneNumber}
-              onChange={setStr("phoneNumber")}
-            />
-            <Select
-              label="Contract type"
-              data={CONTRACT_TYPE_OPTIONS}
-              value={form.contractType}
-              onChange={set("contractType")}
-              clearable
+            <TextInput label="Phone number" {...register("phoneNumber")} />
+            <Controller
+              name="contractType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Contract type"
+                  data={CONTRACT_TYPE_OPTIONS}
+                  value={field.value}
+                  onChange={field.onChange}
+                  clearable
+                />
+              )}
             />
           </SimpleGrid>
 
           <SimpleGrid cols={2}>
-            <NumberInput
-              label="Salary"
-              min={0}
-              value={form.salary}
-              onChange={(v) => set("salary")(v === "" ? undefined : v)}
+            <Controller
+              name="salary"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Salary"
+                  min={0}
+                  value={field.value ?? ""}
+                  onChange={(v) =>
+                    field.onChange(typeof v === "number" ? v : null)
+                  }
+                />
+              )}
             />
-            <NumberInput
-              label="Hours / week"
-              min={0}
-              max={168}
-              value={form.workingHoursPerWeek}
-              onChange={(v) =>
-                set("workingHoursPerWeek")(v === "" ? undefined : v)
-              }
+            <Controller
+              name="workingHoursPerWeek"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Hours / week"
+                  min={0}
+                  max={168}
+                  value={field.value ?? ""}
+                  onChange={(v) =>
+                    field.onChange(typeof v === "number" ? v : null)
+                  }
+                />
+              )}
             />
           </SimpleGrid>
 
@@ -227,20 +262,7 @@ export function CreateEmployeeModal({
             <Button variant="default" onClick={handleClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              loading={createEmployee.isPending}
-              disabled={
-                !form.firstName ||
-                !form.lastName ||
-                !form.email ||
-                !form.employeeNumber ||
-                !form.position ||
-                !form.department ||
-                !form.hireDate ||
-                !effectiveCompanyId
-              }
-            >
+            <Button type="submit" loading={createEmployee.isPending}>
               Create employee
             </Button>
           </Group>
