@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import {
   Modal,
   Stack,
@@ -44,12 +45,18 @@ interface Props {
   timeInLieus?: TimeInLieuOption[];
 }
 
-const EMPTY_FORM = {
-  type: AbsenceType.VACATION as string,
-  startDate: null as Date | null,
-  endDate: null as Date | null,
+interface FormValues {
+  type: string;
+  dateRange: [Date | null, Date | null];
+  notes: string;
+  timeInLieuId: string | null;
+}
+
+const DEFAULT_VALUES: FormValues = {
+  type: AbsenceType.VACATION,
+  dateRange: [null, null],
   notes: "",
-  timeInLieuId: null as string | null
+  timeInLieuId: null
 };
 
 export function CreateAbsenceModal({
@@ -59,40 +66,51 @@ export function CreateAbsenceModal({
   editAbsence,
   timeInLieus = []
 }: Props) {
-  const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [overlapError, setOverlapError] = useState<string | null>(null);
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setError,
+    formState: { errors }
+  } = useForm<FormValues>({ defaultValues: DEFAULT_VALUES });
+
+  const selectedType = watch("type");
+  const isEditing = !!editAbsence;
 
   const createAbsence = useCreateAbsence();
   const updateAbsence = useUpdateAbsence();
 
-  const isEditing = !!editAbsence;
-
-  // Populate form when editing
   useEffect(() => {
     if (editAbsence) {
-      setForm({
+      reset({
         type: editAbsence.type,
-        startDate: new Date(editAbsence.startDate),
-        endDate: new Date(editAbsence.endDate),
+        dateRange: [
+          new Date(editAbsence.startDate),
+          new Date(editAbsence.endDate)
+        ],
         notes: editAbsence.notes ?? "",
         timeInLieuId: editAbsence.timeInLieuId ?? null
       });
     } else {
-      setForm({ ...EMPTY_FORM });
+      reset(DEFAULT_VALUES);
     }
-    setOverlapError(null);
-  }, [editAbsence, opened]);
+  }, [editAbsence, opened, reset]);
 
   const availableTils = timeInLieus.map((t) => ({
     value: t.id,
     label: `${t.hours}h — ${t.earnedDate} (${t.reason})`
   }));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setOverlapError(null);
+  const handleClose = () => {
+    reset(DEFAULT_VALUES);
+    onClose();
+  };
 
-    if (!form.startDate || !form.endDate) {
+  const onSubmit = (values: FormValues) => {
+    const [startDate, endDate] = values.dateRange;
+
+    if (!startDate || !endDate) {
       notifications.show({
         title: "Validation error",
         message: "Please select a date range",
@@ -105,12 +123,12 @@ export function CreateAbsenceModal({
 
     const payload: CreateAbsenceData = {
       employeeId,
-      type: form.type as never,
-      startDate: fmtDate(form.startDate),
-      endDate: fmtDate(form.endDate),
-      ...(form.notes ? { notes: form.notes } : {}),
-      ...(form.type === AbsenceType.TIME_IN_LIEU && form.timeInLieuId
-        ? { timeInLieuId: form.timeInLieuId }
+      type: values.type as never,
+      startDate: fmtDate(startDate),
+      endDate: fmtDate(endDate),
+      ...(values.notes ? { notes: values.notes } : {}),
+      ...(values.type === AbsenceType.TIME_IN_LIEU && values.timeInLieuId
+        ? { timeInLieuId: values.timeInLieuId }
         : {})
     };
 
@@ -119,7 +137,7 @@ export function CreateAbsenceModal({
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "Failed to save absence";
       if (message.toLowerCase().includes("overlap")) {
-        setOverlapError(message);
+        setError("dateRange", { message });
       } else {
         notifications.show({ title: "Error", message, color: "red" });
       }
@@ -164,12 +182,6 @@ export function CreateAbsenceModal({
     }
   };
 
-  const handleClose = () => {
-    setForm({ ...EMPTY_FORM });
-    setOverlapError(null);
-    onClose();
-  };
-
   const isPending = createAbsence.isPending || updateAbsence.isPending;
 
   return (
@@ -183,79 +195,101 @@ export function CreateAbsenceModal({
         </Title>
       }
     >
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Stack gap="md">
-          {overlapError && (
+          {errors.dateRange && (
             <Alert
               color="red"
               icon={<IconAlertCircle size="1rem" />}
               title="Date conflict"
             >
-              {overlapError}
+              {errors.dateRange.message}
             </Alert>
           )}
 
-          <Select
-            label="Absence type"
-            placeholder="Select type"
-            data={TYPE_OPTIONS}
-            value={form.type}
-            onChange={(v) =>
-              setForm((p) => ({
-                ...p,
-                type: v ?? AbsenceType.VACATION,
-                timeInLieuId: null
-              }))
-            }
-            required
+          <Controller
+            name="type"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => (
+              <Select
+                label="Absence type"
+                placeholder="Select type"
+                data={TYPE_OPTIONS}
+                value={field.value}
+                onChange={(v) => field.onChange(v ?? AbsenceType.VACATION)}
+                required
+              />
+            )}
           />
 
-          {form.type === AbsenceType.TIME_IN_LIEU && (
-            <Select
-              label="Time in Lieu to use"
-              placeholder="Select a time in lieu record"
-              data={availableTils}
-              value={form.timeInLieuId}
-              onChange={(v) => setForm((p) => ({ ...p, timeInLieuId: v }))}
-              required
-              description={
-                availableTils.length === 0
-                  ? "No approved time in lieu records available"
-                  : undefined
-              }
+          {selectedType === AbsenceType.TIME_IN_LIEU && (
+            <Controller
+              name="timeInLieuId"
+              control={control}
+              rules={{ required: selectedType === AbsenceType.TIME_IN_LIEU }}
+              render={({ field }) => (
+                <Select
+                  label="Time in Lieu to use"
+                  placeholder="Select a time in lieu record"
+                  data={availableTils}
+                  value={field.value}
+                  onChange={field.onChange}
+                  required
+                  description={
+                    availableTils.length === 0
+                      ? "No approved time in lieu records available"
+                      : undefined
+                  }
+                />
+              )}
             />
           )}
 
-          <DatePickerInput
-            type="range"
-            label="Date range"
-            placeholder="Pick start and end dates"
-            value={[form.startDate, form.endDate]}
-            onChange={(range) => {
-              const [start, end] = range as [Date | null, Date | null];
-              setForm((p) => ({ ...p, startDate: start, endDate: end }));
+          <Controller
+            name="dateRange"
+            control={control}
+            rules={{
+              validate: ([s, e]) => (!!s && !!e) || "Please select a date range"
             }}
-            excludeDate={(date) => {
-              const d = new Date(date as unknown as string);
-              return d.getDay() === 0 || d.getDay() === 6;
-            }}
-            required
+            render={({ field, fieldState }) => (
+              <>
+                <DatePickerInput
+                  type="range"
+                  label="Date range"
+                  placeholder="Pick start and end dates"
+                  value={field.value}
+                  onChange={(range) =>
+                    field.onChange(range as [Date | null, Date | null])
+                  }
+                  excludeDate={(date) => {
+                    const d = new Date(date as unknown as string);
+                    return d.getDay() === 0 || d.getDay() === 6;
+                  }}
+                  required
+                  error={fieldState.error?.message}
+                />
+                {field.value[0] && field.value[1] && (
+                  <Text size="xs" c="dimmed">
+                    Weekends are excluded from the day count.
+                  </Text>
+                )}
+              </>
+            )}
           />
 
-          {form.startDate && form.endDate && (
-            <Text size="xs" c="dimmed">
-              Weekends are excluded from the day count.
-            </Text>
-          )}
-
-          <Textarea
-            label="Notes / Reason"
-            placeholder="Optional reason or notes"
-            value={form.notes}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, notes: e.currentTarget.value }))
-            }
-            rows={3}
+          <Controller
+            name="notes"
+            control={control}
+            render={({ field }) => (
+              <Textarea
+                label="Notes / Reason"
+                placeholder="Optional reason or notes"
+                value={field.value}
+                onChange={field.onChange}
+                rows={3}
+              />
+            )}
           />
 
           <Group justify="flex-end">
