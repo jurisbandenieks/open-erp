@@ -11,6 +11,7 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { useUpdateOwner } from "@/hooks/useOwner";
 import type { Owner } from "@/types/Owner.model";
+import { COMPANY_STATUS_OPTIONS } from "@/utils/constants";
 
 interface EditFormValues {
   firstName: string;
@@ -19,12 +20,6 @@ interface EditFormValues {
   taxId: string;
   status: string;
 }
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "suspended", label: "Suspended" }
-];
 
 interface Props {
   owner: Owner | null;
@@ -87,7 +82,7 @@ export function EditOwnerModal({ owner, onClose }: Props) {
           <TextInput label="Tax ID" {...register("taxId")} />
           <Select
             label="Status"
-            data={STATUS_OPTIONS}
+            data={COMPANY_STATUS_OPTIONS}
             value={statusValue}
             onChange={(val) => setValue("status", val ?? "active")}
           />

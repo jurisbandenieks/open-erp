@@ -25,12 +25,7 @@ import {
 } from "./Companies.columns";
 import { CreateCompanyModal } from "./Modals/CreateCompanyModal";
 import { EditCompanyModal } from "./Modals/EditCompanyModal";
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "suspended", label: "Suspended" }
-];
+import { COMPANY_STATUS_OPTIONS } from "@/utils/constants";
 
 export function Companies() {
   const [search, setSearch] = useState("");
@@ -110,7 +105,7 @@ export function Companies() {
           />
           <Select
             placeholder="All statuses"
-            data={STATUS_OPTIONS}
+            data={COMPANY_STATUS_OPTIONS}
             value={statusFilter}
             onChange={setStatusFilter}
             clearable

@@ -14,12 +14,7 @@ import { notifications } from "@mantine/notifications";
 import { useForm, Controller } from "react-hook-form";
 import { useUpdateCompany } from "@/hooks/useCompany";
 import type { Company, CompanyStatus } from "@/types/Company.model";
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "suspended", label: "Suspended" }
-];
+import { COMPANY_STATUS_OPTIONS } from "@/utils/constants";
 
 interface Props {
   company: Company | null;
@@ -160,7 +155,7 @@ export function EditCompanyModal({ company, onClose }: Props) {
                 <Select
                   label="Status"
                   required
-                  data={STATUS_OPTIONS}
+                  data={COMPANY_STATUS_OPTIONS}
                   value={field.value}
                   onChange={(v) => field.onChange(v ?? "active")}
                 />

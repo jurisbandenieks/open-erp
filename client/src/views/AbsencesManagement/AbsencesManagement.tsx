@@ -20,20 +20,12 @@ import {
 } from "./AbsencesManagement.columns";
 import { ReviewAbsenceModal } from "./Modals/ReviewAbsenceModal";
 import type { Absence, AbsenceFilters } from "@/types/Absence.model";
-import { AbsenceStatus } from "@/types/Absence.model";
+import { ABSENCE_STATUS_OPTIONS } from "@/utils/constants";
 
 const YEAR_OPTIONS = Array.from({ length: 5 }, (_, i) => {
   const y = new Date().getFullYear() - i;
   return { value: String(y), label: String(y) };
 });
-
-const STATUS_OPTIONS = [
-  { value: "", label: "All statuses" },
-  { value: AbsenceStatus.PENDING, label: "Pending" },
-  { value: AbsenceStatus.APPROVED, label: "Approved" },
-  { value: AbsenceStatus.REJECTED, label: "Rejected" },
-  { value: AbsenceStatus.CANCELLED, label: "Cancelled" }
-];
 
 export function AbsencesManagement() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -92,7 +84,7 @@ export function AbsencesManagement() {
           />
           <Select
             label="Status"
-            data={STATUS_OPTIONS}
+            data={ABSENCE_STATUS_OPTIONS}
             value={statusFilter}
             onChange={(v) => setStatusFilter(v ?? "")}
             w={160}
