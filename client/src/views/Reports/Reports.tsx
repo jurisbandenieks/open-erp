@@ -16,7 +16,7 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEmployees } from "@/api/useEmployee";
 import { useTimelogSummary } from "@/api/useTimelog";
-import type { EmployeeReportRow } from "@/api/timelogApi";
+import type { EmployeeReportRow } from "@/types/Timelog.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
   getReportsColumnDefs,

@@ -1,5 +1,5 @@
 import type { ColDef, ValueGetterParams } from "ag-grid-community";
-import type { EmployeeReportRow } from "@/api/timelogApi";
+import type { EmployeeReportRow } from "@/types/Timelog.model";
 
 export const TYPES = [
   "standard",

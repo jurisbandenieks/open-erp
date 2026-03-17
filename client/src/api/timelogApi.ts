@@ -3,59 +3,23 @@ import type {
   Timelog,
   CreateTimelogData,
   UpdateTimelogData,
-  ApproveTimelogData
+  ApproveTimelogData,
+  TimelogFilters,
+  EmployeeReportRow,
+  ReportTotals,
+  WeeklyApprovalSummary,
+  BulkReviewWeekPayload
 } from "@/types/Timelog.model";
 
+export type {
+  TimelogFilters,
+  EmployeeReportRow,
+  ReportTotals,
+  WeeklyApprovalSummary,
+  BulkReviewWeekPayload
+};
+
 const TIMELOG_ENDPOINT = "/timelogs";
-
-export interface TimelogFilters {
-  page?: number;
-  limit?: number;
-  employeeId?: string;
-  entityId?: string;
-  status?: string;
-  type?: string;
-  startDate?: string;
-  endDate?: string;
-  billable?: boolean;
-  approved?: boolean;
-}
-
-export interface EmployeeReportRow {
-  employeeId: string;
-  employeeName: string;
-  totalHours: number;
-  byType: Record<string, number>;
-  byStatus: Record<string, number>;
-}
-
-export interface ReportTotals {
-  totalHours: number;
-  byType: Record<string, number>;
-  byStatus: Record<string, number>;
-}
-
-export interface WeeklyApprovalSummary {
-  employeeId: string;
-  employeeName: string;
-  weekStart: string;
-  weekEnd: string;
-  totalHours: number;
-  draftCount: number;
-  submittedCount: number;
-  approvedCount: number;
-  rejectedCount: number;
-  weekStatus: "draft" | "submitted" | "approved" | "rejected";
-  timelogs: Timelog[];
-}
-
-export interface BulkReviewWeekPayload {
-  employeeId: string;
-  weekStart: string;
-  weekEnd: string;
-  action: "approved" | "rejected";
-  rejectionReason?: string;
-}
 
 export const timelogApi = {
   // Get all timelogs with optional filters

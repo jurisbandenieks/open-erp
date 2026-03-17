@@ -5,17 +5,15 @@ import {
   type UseQueryOptions,
   type UseMutationOptions
 } from "@tanstack/react-query";
-import {
-  timelogApi,
-  type TimelogFilters,
-  type WeeklyApprovalSummary,
-  type BulkReviewWeekPayload
-} from "./timelogApi";
+import { timelogApi } from "./timelogApi";
 import type {
   Timelog,
   CreateTimelogData,
   UpdateTimelogData,
-  ApproveTimelogData
+  ApproveTimelogData,
+  TimelogFilters,
+  WeeklyApprovalSummary,
+  BulkReviewWeekPayload
 } from "@/types/Timelog.model";
 
 // Query keys
@@ -424,4 +422,4 @@ export const useBulkReviewWeek = (
   });
 };
 
-export type { WeeklyApprovalSummary, BulkReviewWeekPayload };
+export type { TimelogFilters, WeeklyApprovalSummary, BulkReviewWeekPayload };

@@ -11,10 +11,8 @@ import {
   SimpleGrid
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  useBulkReviewWeek,
-  type WeeklyApprovalSummary
-} from "@/api/useTimelog";
+import { useBulkReviewWeek } from "@/api/useTimelog";
+import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
 
 interface Props {
   opened: boolean;

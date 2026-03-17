@@ -91,17 +91,55 @@ export interface ApproveTimelogData {
 }
 
 export interface TimelogFilters {
+  page?: number;
+  limit?: number;
   employeeId?: string;
   entityId?: string;
   type?: TimelogType;
   status?: TimelogStatus;
-  dateFrom?: string;
-  dateTo?: string;
+  startDate?: string;
+  endDate?: string;
   approved?: boolean;
   approvedBy?: string;
   billable?: boolean;
   isRemote?: boolean;
   search?: string;
+}
+
+export interface EmployeeReportRow {
+  employeeId: string;
+  employeeName: string;
+  totalHours: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+}
+
+export interface ReportTotals {
+  totalHours: number;
+  byType: Record<string, number>;
+  byStatus: Record<string, number>;
+}
+
+export interface WeeklyApprovalSummary {
+  employeeId: string;
+  employeeName: string;
+  weekStart: string;
+  weekEnd: string;
+  totalHours: number;
+  draftCount: number;
+  submittedCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  weekStatus: "draft" | "submitted" | "approved" | "rejected";
+  timelogs: Timelog[];
+}
+
+export interface BulkReviewWeekPayload {
+  employeeId: string;
+  weekStart: string;
+  weekEnd: string;
+  action: "approved" | "rejected";
+  rejectionReason?: string;
 }
 
 // Helper interfaces for timesheet reports

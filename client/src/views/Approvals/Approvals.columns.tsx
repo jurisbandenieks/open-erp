@@ -1,7 +1,7 @@
 import type { ColDef } from "ag-grid-community";
 import { Badge, ActionIcon, Tooltip, Group } from "@mantine/core";
 import { IconClipboardCheck, IconRefresh } from "@tabler/icons-react";
-import type { WeeklyApprovalSummary } from "@/api/useTimelog";
+import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "gray",

@@ -17,10 +17,8 @@ import {
   IconChevronLeft,
   IconChevronRight
 } from "@tabler/icons-react";
-import {
-  useWeeklyApprovals,
-  type WeeklyApprovalSummary
-} from "@/api/useTimelog";
+import { useWeeklyApprovals } from "@/api/useTimelog";
+import type { WeeklyApprovalSummary } from "@/types/Timelog.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
   getApprovalsColumnDefs,
