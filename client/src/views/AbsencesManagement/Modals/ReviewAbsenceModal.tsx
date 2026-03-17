@@ -12,6 +12,7 @@ import {
 import { notifications } from "@mantine/notifications";
 import { useReviewAbsence } from "@/hooks/useAbsence";
 import { STATUS_COLORS, TYPE_LABELS } from "@/views/Absences/Absences.columns";
+import { DetailRow } from "@/components/DetailRow/DetailRow";
 import type { Absence } from "@/types/Absence.model";
 
 interface Props {
@@ -83,38 +84,32 @@ export function ReviewAbsenceModal({ opened, onClose, absence }: Props) {
     >
       <Stack gap="md">
         <Stack gap="xs">
-          <Group justify="space-between">
-            <Text fw={500}>Employee</Text>
+          <DetailRow label="Employee">
             <Text>{absence.employeeName ?? absence.employeeId}</Text>
-          </Group>
-          <Group justify="space-between">
-            <Text fw={500}>Type</Text>
+          </DetailRow>
+          <DetailRow label="Type">
             <Text>{TYPE_LABELS[absence.type] ?? absence.type}</Text>
-          </Group>
-          <Group justify="space-between">
-            <Text fw={500}>Date range</Text>
+          </DetailRow>
+          <DetailRow label="Date range">
             <Text>
               {absence.startDate} – {absence.endDate}
             </Text>
-          </Group>
-          <Group justify="space-between">
-            <Text fw={500}>Working days</Text>
+          </DetailRow>
+          <DetailRow label="Working days">
             <Text>{absence.totalDays}</Text>
-          </Group>
-          <Group justify="space-between">
-            <Text fw={500}>Status</Text>
+          </DetailRow>
+          <DetailRow label="Status">
             <Badge
               color={STATUS_COLORS[absence.status] ?? "gray"}
               variant="light"
             >
               {absence.status.charAt(0).toUpperCase() + absence.status.slice(1)}
             </Badge>
-          </Group>
+          </DetailRow>
           {absence.notes && (
-            <Group justify="space-between" align="flex-start">
-              <Text fw={500}>Notes</Text>
+            <DetailRow label="Notes" align="flex-start">
               <Text style={{ maxWidth: 260 }}>{absence.notes}</Text>
-            </Group>
+            </DetailRow>
           )}
         </Stack>
 
