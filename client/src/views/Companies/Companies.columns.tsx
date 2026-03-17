@@ -1,7 +1,7 @@
 import { Badge, ActionIcon, Group, Tooltip } from "@mantine/core";
 import { IconEdit, IconBuildingOff } from "@tabler/icons-react";
 import type { ColDef } from "ag-grid-community";
-import type { Company } from "@/types/Entity.model";
+import type { Company } from "@/types/Company.model";
 
 const statusColorMap: Record<string, string> = {
   active: "green",

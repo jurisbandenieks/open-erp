@@ -5,7 +5,7 @@ import type {
   CompanyListParams,
   CreateCompanyPayload,
   UpdateCompanyPayload
-} from "@/types/Entity.model";
+} from "@/types/Company.model";
 import type { PaginatedResponse } from "@/types";
 
 const MANAGE_ENDPOINT = "/companies/manage";

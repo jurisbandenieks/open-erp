@@ -12,7 +12,7 @@ import type {
   CompanyListParams,
   CreateCompanyPayload,
   UpdateCompanyPayload
-} from "@/types/Entity.model";
+} from "@/types/Company.model";
 
 export const companyKeys = {
   all: ["companies"] as const,

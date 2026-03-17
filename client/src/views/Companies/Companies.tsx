@@ -17,7 +17,7 @@ import { notifications } from "@mantine/notifications";
 import { useAllCompanies, useUpdateCompany } from "@/api/useCompany";
 import { useMyOwner } from "@/api/useOwner";
 import { useAuth } from "@/context/AuthContext";
-import type { Company } from "@/types/Entity.model";
+import type { Company } from "@/types/Company.model";
 import { DataGrid } from "@/components/DataGrid/DataGrid";
 import {
   getCompanyColumnDefs,

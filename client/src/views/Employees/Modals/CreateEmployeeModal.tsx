@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useCreateEmployee } from "@/api/useEmployee";
-import type { CompanyOption } from "@/types/Entity.model";
+import type { CompanyOption } from "@/types/Company.model";
 
 const CONTRACT_TYPE_OPTIONS = [
   { value: "full-time", label: "Full-time" },

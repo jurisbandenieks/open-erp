@@ -12,7 +12,7 @@ import {
 import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useUpdateCompany } from "@/api/useCompany";
-import type { Company, CompanyStatus } from "@/types/Entity.model";
+import type { Company, CompanyStatus } from "@/types/Company.model";
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
