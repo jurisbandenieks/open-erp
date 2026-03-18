@@ -490,7 +490,7 @@ export const getTimelogSummary = [
   }
 ] as const;
 
-export const getTimelogsByEntity = (_req: Request, res: Response) => {
+export const getTimelogsByCompany = (_req: Request, res: Response) => {
   res.json({ success: true, data: [] });
 };
 

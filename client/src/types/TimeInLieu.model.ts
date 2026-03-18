@@ -40,8 +40,8 @@ export interface TimeInLieu {
 
   // Additional info
   notes?: string;
-  entityId?: string; // Project/entity where the extra time was worked
-  entityName?: string;
+  companyId?: string; // Company where the extra time was worked
+  companyName?: string;
 
   createdAt: string;
   updatedAt: string;
@@ -54,7 +54,7 @@ export interface CreateTimeInLieuData {
   reason: string;
   expiryDate?: string;
   notes?: string;
-  entityId?: string;
+  companyId?: string;
 }
 
 export interface UpdateTimeInLieuData {
@@ -82,7 +82,7 @@ export interface UseTimeInLieuData {
 export interface TimeInLieuFilters {
   employeeId?: string;
   status?: TimeInLieuStatus;
-  entityId?: string;
+  companyId?: string;
   earnedDateFrom?: string;
   earnedDateTo?: string;
   expiryDateFrom?: string;

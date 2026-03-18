@@ -95,15 +95,15 @@ export const timelogApi = {
     return data;
   },
 
-  // Get timelogs by entity (project/company)
-  getByEntity: async (
-    entityId: string,
-    params?: Omit<TimelogFilters, "entityId">
+  // Get timelogs by company
+  getByCompany: async (
+    companyId: string,
+    params?: Omit<TimelogFilters, "companyId">
   ) => {
     const { data } = await axiosClient.get<{
       data: Timelog[];
       total: number;
-    }>(`${TIMELOG_ENDPOINT}/entity/${entityId}`, { params });
+    }>(`${TIMELOG_ENDPOINT}/company/${companyId}`, { params });
     return data;
   },
 

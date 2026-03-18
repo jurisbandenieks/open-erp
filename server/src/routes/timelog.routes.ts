@@ -4,7 +4,7 @@ import {
   listTimelogs,
   getTimelogSummary,
   getTimelogsByEmployee,
-  getTimelogsByEntity,
+  getTimelogsByCompany,
   getTimelog,
   createTimelog,
   updateTimelog,
@@ -27,7 +27,7 @@ router.get("/", ...listTimelogs);
 router.get("/summary", ...getTimelogSummary);
 router.get("/weekly-approvals", ...listWeeklyApprovals);
 router.get("/employee/:employeeId", ...getTimelogsByEmployee);
-router.get("/entity/:entityId", getTimelogsByEntity);
+router.get("/company/:companyId", getTimelogsByCompany);
 router.get("/:id", getTimelog);
 router.post("/", ...createTimelog);
 router.post("/bulk/submit", ...bulkSubmitTimelogs);

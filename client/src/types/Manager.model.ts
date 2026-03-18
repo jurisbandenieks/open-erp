@@ -20,9 +20,9 @@ export interface Manager {
   avatar?: string;
 }
 
-export interface EntityManager {
+export interface CompanyManager {
   id: string;
-  entityId: string;
+  companyId: string;
   managerId: string;
   managerName: string;
   managerEmail: string;
@@ -32,7 +32,7 @@ export interface EntityManager {
 }
 
 export interface AssignManagerData {
-  entityId: string;
+  companyId: string;
   managerId: string;
   role: ManagerRole;
 }

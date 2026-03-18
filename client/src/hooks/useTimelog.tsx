@@ -48,11 +48,11 @@ export const timelogKeys = {
       endDate,
       filters
     ] as const,
-  byEntity: (entityId: string, filters?: Omit<TimelogFilters, "entityId">) =>
-    [...timelogKeys.all, "entity", entityId, filters] as const,
+  byCompany: (companyId: string, filters?: Omit<TimelogFilters, "companyId">) =>
+    [...timelogKeys.all, "company", companyId, filters] as const,
   summary: (params: {
     employeeId?: string;
-    entityId?: string;
+    companyId?: string;
     startDate: string;
     endDate: string;
   }) => [...timelogKeys.all, "summary", params] as const,
@@ -150,19 +150,19 @@ export const useTimelogsByEmployeeAndWeek = (
   });
 };
 
-// Get timelogs by entity
-export const useTimelogsByEntity = (
-  entityId: string,
-  filters?: Omit<TimelogFilters, "entityId">,
+// Get timelogs by company
+export const useTimelogsByCompany = (
+  companyId: string,
+  filters?: Omit<TimelogFilters, "companyId">,
   options?: Omit<
-    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByEntity>>>,
+    UseQueryOptions<Awaited<ReturnType<typeof timelogApi.getByCompany>>>,
     "queryKey" | "queryFn"
   >
 ) => {
   return useQuery({
-    queryKey: timelogKeys.byEntity(entityId, filters),
-    queryFn: () => timelogApi.getByEntity(entityId, filters),
-    enabled: !!entityId,
+    queryKey: timelogKeys.byCompany(companyId, filters),
+    queryFn: () => timelogApi.getByCompany(companyId, filters),
+    enabled: !!companyId,
     ...options
   });
 };
@@ -180,7 +180,7 @@ export const useTimelogSummary = (
   >
 ) => {
   return useQuery({
-    queryKey: timelogKeys.summary({ ...params, entityId: undefined }),
+    queryKey: timelogKeys.summary({ ...params, companyId: undefined }),
     queryFn: () => timelogApi.getSummary(params),
     enabled: !!params.startDate && !!params.endDate,
     ...options
@@ -200,9 +200,9 @@ export const useCreateTimelog = (
       queryClient.invalidateQueries({
         queryKey: timelogKeys.byEmployee(data.employeeId)
       });
-      if (data.entityId) {
+      if (data.companyId) {
         queryClient.invalidateQueries({
-          queryKey: timelogKeys.byEntity(data.entityId)
+          queryKey: timelogKeys.byCompany(data.companyId)
         });
       }
     },
@@ -228,9 +228,9 @@ export const useUpdateTimelog = (
       queryClient.invalidateQueries({
         queryKey: timelogKeys.byEmployee(data.employeeId)
       });
-      if (data.entityId) {
+      if (data.companyId) {
         queryClient.invalidateQueries({
-          queryKey: timelogKeys.byEntity(data.entityId)
+          queryKey: timelogKeys.byCompany(data.companyId)
         });
       }
     },
@@ -256,9 +256,9 @@ export const usePatchTimelog = (
       queryClient.invalidateQueries({
         queryKey: timelogKeys.byEmployee(data.employeeId)
       });
-      if (data.entityId) {
+      if (data.companyId) {
         queryClient.invalidateQueries({
-          queryKey: timelogKeys.byEntity(data.entityId)
+          queryKey: timelogKeys.byCompany(data.companyId)
         });
       }
     },

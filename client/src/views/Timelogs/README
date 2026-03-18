@@ -72,18 +72,18 @@ Rows with status `submitted` or `approved` are not editable.
 
 Rendered with **AG Grid** via the shared `DataGrid` component. Column definitions and the default column def are exported from `Timelogs.columns.tsx`.
 
-| Column           | Field            | Notes                                               |
-| ---------------- | ---------------- | --------------------------------------------------- |
-| Date             | `date`           | Formatted `ddd, MMM DD`; pinned left                |
-| Employee         | `employeeName`   | Hidden when a specific employee is already selected |
-| Entity / Project | `entityName`     | Falls back to `–`                                   |
-| Hours            | `totalHours`     | Numeric; displayed as `Xh`                          |
-| Type             | `type`           | Colour-coded badge (see below)                      |
-| Status           | `status`         | Colour-coded badge (see below)                      |
-| Description      | `description`    | Flexible width; tooltip on overflow                 |
-| Location         | `location`       | Shows `Remote` when `isRemote` is true              |
-| Billable         | `billable`       | Shows calculated value `billableHours × hourlyRate` |
-| Approved By      | `approvedByName` | Falls back to `–`                                   |
+| Column            | Field            | Notes                                               |
+| ----------------- | ---------------- | --------------------------------------------------- |
+| Date              | `date`           | Formatted `ddd, MMM DD`; pinned left                |
+| Employee          | `employeeName`   | Hidden when a specific employee is already selected |
+| Company / Project | `companyName`    | Falls back to `–`                                   |
+| Hours             | `totalHours`     | Numeric; displayed as `Xh`                          |
+| Type              | `type`           | Colour-coded badge (see below)                      |
+| Status            | `status`         | Colour-coded badge (see below)                      |
+| Description       | `description`    | Flexible width; tooltip on overflow                 |
+| Location          | `location`       | Shows `Remote` when `isRemote` is true              |
+| Billable          | `billable`       | Shows calculated value `billableHours × hourlyRate` |
+| Approved By       | `approvedByName` | Falls back to `–`                                   |
 
 All columns are sortable, filterable and resizable by default.
 

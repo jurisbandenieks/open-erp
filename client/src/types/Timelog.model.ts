@@ -21,8 +21,8 @@ export interface Timelog {
   id: string;
   employeeId: string;
   employeeName?: string;
-  entityId?: string; // Project/Company the work was done for
-  entityName?: string;
+  companyId?: string;
+  companyName?: string;
 
   date: string;
   totalHours: number;
@@ -57,7 +57,7 @@ export interface Timelog {
 
 export interface CreateTimelogData {
   employeeId: string;
-  entityId?: string;
+  companyId?: string;
   date: string;
   totalHours: number;
   type?: TimelogType;
@@ -94,7 +94,7 @@ export interface TimelogFilters {
   page?: number;
   limit?: number;
   employeeId?: string;
-  entityId?: string;
+  companyId?: string;
   type?: TimelogType;
   status?: TimelogStatus;
   startDate?: string;

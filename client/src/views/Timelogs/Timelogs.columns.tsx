@@ -64,10 +64,10 @@ export const getTimelogColumnDefs = (
     hide: hideEmployee
   },
   {
-    headerName: "Entity/Project",
-    field: "entityName",
+    headerName: "Company/Project",
+    field: "companyName",
     width: 180,
-    valueGetter: (params) => params.data?.entityName || "-"
+    valueGetter: (params) => params.data?.companyName || "-"
   },
   {
     headerName: "Hours",
