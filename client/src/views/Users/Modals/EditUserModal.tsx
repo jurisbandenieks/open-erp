@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { useUpdateUser } from "@/hooks/useUser";
 import type { User } from "@/types/User.model";
+import { USER_ROLE_OPTIONS, USER_STATUS_OPTIONS } from "@/utils/constants";
 
 interface EditFormValues {
   email: string;
@@ -29,18 +30,6 @@ interface Props {
   opened: boolean;
   onClose: () => void;
 }
-
-const roleOptions = [
-  { value: "user", label: "User" },
-  { value: "admin", label: "Admin" }
-];
-
-const statusOptions = [
-  { value: "active", label: "Active" },
-  { value: "pending", label: "Pending" },
-  { value: "suspended", label: "Suspended" },
-  { value: "inactive", label: "Inactive" }
-];
 
 export function EditUserModal({ user, opened, onClose }: Props) {
   const {
@@ -107,13 +96,13 @@ export function EditUserModal({ user, opened, onClose }: Props) {
           <Group grow>
             <Select
               label="Role"
-              data={roleOptions}
+              data={USER_ROLE_OPTIONS}
               value={watch("role")}
               onChange={(v) => setValue("role", v ?? "user")}
             />
             <Select
               label="Status"
-              data={statusOptions}
+              data={USER_STATUS_OPTIONS}
               value={watch("status")}
               onChange={(v) => setValue("status", v ?? "active")}
             />

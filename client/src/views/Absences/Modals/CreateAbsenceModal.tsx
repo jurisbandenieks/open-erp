@@ -17,18 +17,7 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import { useCreateAbsence, useUpdateAbsence } from "@/hooks/useAbsence";
 import { AbsenceType } from "@/types/Absence.model";
 import type { Absence, CreateAbsenceData } from "@/types/Absence.model";
-
-const TYPE_OPTIONS = [
-  { value: AbsenceType.VACATION, label: "Vacation" },
-  { value: AbsenceType.SICK_LEAVE, label: "Sick Leave" },
-  { value: AbsenceType.PERSONAL, label: "Personal" },
-  { value: AbsenceType.UNPAID, label: "Unpaid" },
-  { value: AbsenceType.MATERNITY, label: "Maternity" },
-  { value: AbsenceType.PATERNITY, label: "Paternity" },
-  { value: AbsenceType.BEREAVEMENT, label: "Bereavement" },
-  { value: AbsenceType.STUDY, label: "Study" },
-  { value: AbsenceType.TIME_IN_LIEU, label: "Time in Lieu" }
-];
+import { ABSENCE_TYPE_OPTIONS } from "@/utils/constants";
 
 interface TimeInLieuOption {
   id: string;
@@ -215,7 +204,7 @@ export function CreateAbsenceModal({
               <Select
                 label="Absence type"
                 placeholder="Select type"
-                data={TYPE_OPTIONS}
+                data={ABSENCE_TYPE_OPTIONS}
                 value={field.value}
                 onChange={(v) => field.onChange(v ?? AbsenceType.VACATION)}
                 required

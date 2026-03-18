@@ -11,6 +11,7 @@ import {
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { useCreateUser } from "@/hooks/useUser";
+import { USER_ROLE_OPTIONS, USER_STATUS_OPTIONS } from "@/utils/constants";
 
 interface CreateFormValues {
   email: string;
@@ -25,18 +26,6 @@ interface Props {
   opened: boolean;
   onClose: () => void;
 }
-
-const roleOptions = [
-  { value: "user", label: "User" },
-  { value: "admin", label: "Admin" }
-];
-
-const statusOptions = [
-  { value: "active", label: "Active" },
-  { value: "pending", label: "Pending" },
-  { value: "suspended", label: "Suspended" },
-  { value: "inactive", label: "Inactive" }
-];
 
 export function CreateUserModal({ opened, onClose }: Props) {
   const {
@@ -109,13 +98,13 @@ export function CreateUserModal({ opened, onClose }: Props) {
           <Group grow>
             <Select
               label="Role"
-              data={roleOptions}
+              data={USER_ROLE_OPTIONS}
               value={watch("role")}
               onChange={(v) => setValue("role", v ?? "user")}
             />
             <Select
               label="Status"
-              data={statusOptions}
+              data={USER_STATUS_OPTIONS}
               value={watch("status")}
               onChange={(v) => setValue("status", v ?? "active")}
             />

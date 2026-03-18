@@ -13,7 +13,7 @@ import { notifications } from "@mantine/notifications";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateTimelog, useUpdateTimelog } from "@/hooks/useTimelog";
 import type { Timelog, TimelogType } from "@/types/Timelog.model";
-import { TYPE_OPTIONS } from "../constants";
+import { TIMELOG_TYPE_OPTIONS } from "@/utils/constants";
 import dayjs from "dayjs";
 
 interface Props {
@@ -184,7 +184,7 @@ export function CreateTimelogModal({
             render={({ field }) => (
               <Select
                 label="Type"
-                data={TYPE_OPTIONS}
+                data={TIMELOG_TYPE_OPTIONS}
                 value={field.value}
                 onChange={(v) => field.onChange(v ?? "standard")}
               />

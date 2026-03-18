@@ -13,14 +13,7 @@ import { notifications } from "@mantine/notifications";
 import { useForm, Controller } from "react-hook-form";
 import { useCreateEmployee } from "@/hooks/useEmployee";
 import type { CompanyOption } from "@/types/Company.model";
-
-const CONTRACT_TYPE_OPTIONS = [
-  { value: "full-time", label: "Full-time" },
-  { value: "part-time", label: "Part-time" },
-  { value: "contract", label: "Contract" },
-  { value: "intern", label: "Intern" },
-  { value: "freelance", label: "Freelance" }
-];
+import { CONTRACT_TYPE_OPTIONS } from "@/utils/constants";
 
 interface Props {
   opened: boolean;
