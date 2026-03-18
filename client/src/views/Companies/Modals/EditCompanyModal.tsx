@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Modal,
   Stack,
@@ -13,6 +13,8 @@ import { IconAlertCircle } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useForm, Controller } from "react-hook-form";
 import { useUpdateCompany } from "@/hooks/useCompany";
+import { useOwners } from "@/hooks/useOwner";
+import { useAuth } from "@/context/AuthContext";
 import type { Company, CompanyStatus } from "@/types/Company.model";
 import { COMPANY_STATUS_OPTIONS } from "@/utils/constants";
 
@@ -33,9 +35,23 @@ interface FormValues {
   country: string;
   currency: string;
   status: string;
+  ownerId: string;
 }
 
 export function EditCompanyModal({ company, onClose }: Props) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const { data: owners = [] } = useOwners({ enabled: isAdmin });
+
+  const ownerOptions = useMemo(
+    () =>
+      owners.map((o) => ({
+        value: o.id,
+        label: o.displayName || `${o.user.firstName} ${o.user.lastName}`
+      })),
+    [owners]
+  );
+
   const {
     register,
     handleSubmit,
@@ -54,7 +70,8 @@ export function EditCompanyModal({ company, onClose }: Props) {
       city: "",
       country: "",
       currency: "",
-      status: "active"
+      status: "active",
+      ownerId: ""
     }
   });
 
@@ -73,7 +90,8 @@ export function EditCompanyModal({ company, onClose }: Props) {
         city: company.city ?? "",
         country: company.country ?? "",
         currency: company.currency ?? "",
-        status: company.status ?? "active"
+        status: company.status ?? "active",
+        ownerId: company.ownerId ?? ""
       });
     }
   }, [company, reset]);
@@ -95,7 +113,8 @@ export function EditCompanyModal({ company, onClose }: Props) {
           city: data.city || undefined,
           country: data.country || undefined,
           currency: data.currency || undefined,
-          status: data.status as CompanyStatus
+          status: data.status as CompanyStatus,
+          ...(isAdmin && data.ownerId ? { ownerId: data.ownerId } : {})
         }
       },
       {
@@ -162,7 +181,23 @@ export function EditCompanyModal({ company, onClose }: Props) {
               )}
             />
           </SimpleGrid>
-
+          {isAdmin && (
+            <Controller
+              name="ownerId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Owner"
+                  placeholder="Select owner"
+                  data={ownerOptions}
+                  value={field.value}
+                  onChange={(v) => field.onChange(v ?? "")}
+                  searchable
+                  clearable
+                />
+              )}
+            />
+          )}
           <SimpleGrid cols={2}>
             <TextInput label="VAT number" {...register("vatNumber")} />
             <TextInput

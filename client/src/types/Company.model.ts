@@ -58,6 +58,7 @@ export interface UpdateCompanyPayload {
   country?: string;
   currency?: string;
   status?: CompanyStatus;
+  ownerId?: string;
 }
 
 export interface CompanyOption {

@@ -45,7 +45,8 @@ export const updateCompanySchema = z.object({
   city: z.string().optional(),
   country: z.nativeEnum(Country).optional(),
   currency: z.string().optional(),
-  status: z.nativeEnum(CompanyStatus).optional()
+  status: z.nativeEnum(CompanyStatus).optional(),
+  ownerId: z.string().uuid().optional()
 });
 
 export type CreateCompanyDto = z.infer<typeof createCompanySchema>;
@@ -182,7 +183,8 @@ export const updateCompany = async (id: string, dto: UpdateCompanyDto) => {
     ...(dto.city !== undefined && { city: dto.city }),
     ...(dto.country !== undefined && { country: dto.country }),
     ...(dto.currency !== undefined && { currency: dto.currency }),
-    ...(dto.status !== undefined && { status: dto.status })
+    ...(dto.status !== undefined && { status: dto.status }),
+    ...(dto.ownerId !== undefined && { ownerId: dto.ownerId })
   });
 
   await companyRepo().save(company);

@@ -205,6 +205,10 @@ export const updateCompanyHandler = [
         if (!ownerId || company.ownerId !== ownerId) {
           return res.status(403).json({ success: false, message: "Forbidden" });
         }
+        // Non-admins cannot re-assign the owner
+        if (req.body.ownerId !== undefined) {
+          return res.status(403).json({ success: false, message: "Only admins can reassign the owner" });
+        }
       }
 
       const data = await updateComp(req.params.id, req.body);
