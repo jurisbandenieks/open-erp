@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   Modal,
   Stack,
@@ -8,14 +9,15 @@ import {
   Alert
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useForm } from "react-hook-form";
+import { notifications } from "@mantine/notifications";
+import { useForm, Controller } from "react-hook-form";
 import { useUpdateOwner } from "@/hooks/useOwner";
+import { useUsers } from "@/hooks/useUser";
 import type { Owner } from "@/types/Owner.model";
 import { COMPANY_STATUS_OPTIONS } from "@/utils/constants";
 
 interface EditFormValues {
-  firstName: string;
-  lastName: string;
+  userId: string;
   displayName: string;
   taxId: string;
   status: string;
@@ -30,14 +32,14 @@ export function EditOwnerModal({ owner, onClose }: Props) {
   const {
     register,
     handleSubmit,
+    control,
     setValue,
     watch,
     formState: { errors, isSubmitting }
   } = useForm<EditFormValues>({
     values: owner
       ? {
-          firstName: owner.user.firstName,
-          lastName: owner.user.lastName,
+          userId: owner.userId,
           displayName: owner.displayName ?? "",
           taxId: owner.taxId ?? "",
           status: owner.status
@@ -45,12 +47,39 @@ export function EditOwnerModal({ owner, onClose }: Props) {
       : undefined
   });
 
-  const statusValue = watch("status");
+  const { data: usersData } = useUsers({ limit: 200 }, { enabled: !!owner });
 
-  const mutation = useUpdateOwner({ onSuccess: onClose });
+  const userOptions = useMemo(
+    () =>
+      (usersData?.data ?? []).map((u) => ({
+        value: u.id,
+        label: `${u.firstName} ${u.lastName} (${u.email})`
+      })),
+    [usersData]
+  );
+
+  const statusValue = watch("status");
+  const mutation = useUpdateOwner({
+    onSuccess: () => {
+      notifications.show({
+        title: "Owner updated",
+        message: "Owner has been saved.",
+        color: "green"
+      });
+      onClose();
+    }
+  });
 
   const onSubmit = handleSubmit(async (values) => {
-    await mutation.mutateAsync({ id: owner!.id, payload: values });
+    await mutation.mutateAsync({
+      id: owner!.id,
+      payload: {
+        userId: values.userId !== owner?.userId ? values.userId : undefined,
+        displayName: values.displayName || undefined,
+        taxId: values.taxId || undefined,
+        status: values.status
+      }
+    });
   });
 
   return (
@@ -66,18 +95,23 @@ export function EditOwnerModal({ owner, onClose }: Props) {
               {(mutation.error as Error).message}
             </Alert>
           )}
-          <Group grow>
-            <TextInput
-              label="First name"
-              {...register("firstName", { required: "Required" })}
-              error={errors.firstName?.message}
-            />
-            <TextInput
-              label="Last name"
-              {...register("lastName", { required: "Required" })}
-              error={errors.lastName?.message}
-            />
-          </Group>
+          <Controller
+            name="userId"
+            control={control}
+            rules={{ required: "Please select a user" }}
+            render={({ field }) => (
+              <Select
+                label="Linked user"
+                placeholder="Search and select a user"
+                required
+                searchable
+                data={userOptions}
+                value={field.value}
+                onChange={(v) => field.onChange(v ?? "")}
+                error={errors.userId?.message}
+              />
+            )}
+          />
           <TextInput label="Display name" {...register("displayName")} />
           <TextInput label="Tax ID" {...register("taxId")} />
           <Select

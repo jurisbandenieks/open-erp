@@ -1,21 +1,21 @@
+import { useMemo } from "react";
 import {
   Modal,
   Stack,
   Group,
+  Select,
   TextInput,
-  PasswordInput,
   Button,
   Alert
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
-import { useForm } from "react-hook-form";
-import { useCreateOwner } from "@/hooks/useOwner";
+import { useForm, Controller } from "react-hook-form";
+import { useCreateOwnerFromUser } from "@/hooks/useOwner";
+import { useUsers } from "@/hooks/useUser";
+import { notifications } from "@mantine/notifications";
 
 interface CreateFormValues {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
+  userId: string;
   displayName: string;
   taxId: string;
 }
@@ -29,19 +29,42 @@ export function CreateOwnerModal({ opened, onClose }: Props) {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors, isSubmitting }
-  } = useForm<CreateFormValues>();
+  } = useForm<CreateFormValues>({
+    defaultValues: { userId: "", displayName: "", taxId: "" }
+  });
 
-  const mutation = useCreateOwner({
+  const { data: usersData } = useUsers({ limit: 200 }, { enabled: opened });
+
+  const userOptions = useMemo(
+    () =>
+      (usersData?.data ?? []).map((u) => ({
+        value: u.id,
+        label: `${u.firstName} ${u.lastName} (${u.email})`
+      })),
+    [usersData]
+  );
+
+  const mutation = useCreateOwnerFromUser({
     onSuccess: () => {
+      notifications.show({
+        title: "Owner created",
+        message: "User has been assigned as owner.",
+        color: "green"
+      });
       reset();
       onClose();
     }
   });
 
   const onSubmit = handleSubmit(async (values) => {
-    await mutation.mutateAsync(values);
+    await mutation.mutateAsync({
+      userId: values.userId,
+      displayName: values.displayName || undefined,
+      taxId: values.taxId || undefined
+    });
   });
 
   const handleClose = () => {
@@ -63,31 +86,22 @@ export function CreateOwnerModal({ opened, onClose }: Props) {
               {(mutation.error as Error).message}
             </Alert>
           )}
-          <Group grow>
-            <TextInput
-              label="First name"
-              {...register("firstName", { required: "First name is required" })}
-              error={errors.firstName?.message}
-            />
-            <TextInput
-              label="Last name"
-              {...register("lastName", { required: "Last name is required" })}
-              error={errors.lastName?.message}
-            />
-          </Group>
-          <TextInput
-            label="Email"
-            type="email"
-            {...register("email", { required: "Email is required" })}
-            error={errors.email?.message}
-          />
-          <PasswordInput
-            label="Password"
-            {...register("password", {
-              required: "Password is required",
-              minLength: { value: 8, message: "Minimum 8 characters" }
-            })}
-            error={errors.password?.message}
+          <Controller
+            name="userId"
+            control={control}
+            rules={{ required: "Please select a user" }}
+            render={({ field }) => (
+              <Select
+                label="User"
+                placeholder="Search and select a user"
+                required
+                searchable
+                data={userOptions}
+                value={field.value}
+                onChange={(v) => field.onChange(v ?? "")}
+                error={errors.userId?.message}
+              />
+            )}
           />
           <TextInput label="Display name" {...register("displayName")} />
           <TextInput label="Tax ID" {...register("taxId")} />

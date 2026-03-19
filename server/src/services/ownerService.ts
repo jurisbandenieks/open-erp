@@ -8,6 +8,13 @@ import { AppError } from "../middleware/errorHandler";
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
+export const createOwnerFromUserSchema = z.object({
+  userId: z.string().uuid(),
+  displayName: z.string().optional(),
+  taxId: z.string().optional(),
+  metadata: z.record(z.unknown()).optional()
+});
+
 export const createOwnerSchema = z.object({
   // User fields
   email: z.string().email(),
@@ -25,6 +32,9 @@ export const createOwnerSchema = z.object({
 });
 
 export const updateOwnerSchema = z.object({
+  // User re-link
+  userId: z.string().uuid().optional(),
+
   // User fields
   email: z.string().email().optional(),
   firstName: z.string().min(1).optional(),
@@ -42,6 +52,7 @@ export const updateOwnerSchema = z.object({
 });
 
 export type CreateOwnerDto = z.infer<typeof createOwnerSchema>;
+export type CreateOwnerFromUserDto = z.infer<typeof createOwnerFromUserSchema>;
 export type UpdateOwnerDto = z.infer<typeof updateOwnerSchema>;
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -79,6 +90,33 @@ export const getOwnerById = async (id: string) => {
   });
   if (!owner) throw new AppError("Owner not found", 404);
   return owner;
+};
+
+/**
+ * Link an existing User as an Owner without creating a new user.
+ */
+export const createOwnerFromUser = async (dto: CreateOwnerFromUserDto) => {
+  const user = await userRepo().findOne({ where: { id: dto.userId } });
+  if (!user) throw new AppError("User not found", 404);
+
+  const existingOwner = await ownerRepo().findOne({
+    where: { userId: dto.userId }
+  });
+  if (existingOwner) throw new AppError("User is already an owner", 409);
+
+  return AppDataSource.transaction(async (manager) => {
+    await manager.update(User, dto.userId, { role: UserRole.ADMIN });
+
+    const owner = manager.create(Owner, {
+      userId: dto.userId,
+      displayName: dto.displayName ?? `${user.firstName} ${user.lastName}`,
+      taxId: dto.taxId,
+      metadata: dto.metadata ?? {},
+      status: OwnerStatus.ACTIVE
+    });
+    await manager.save(owner);
+    return getOwnerById(owner.id);
+  });
 };
 
 /**
@@ -133,8 +171,30 @@ export const updateOwner = async (id: string, dto: UpdateOwnerDto) => {
 
   return AppDataSource.transaction(async (manager) => {
     // Update User fields if provided
-    const { displayName, taxId, ownerStatus, metadata, ...userFields } = dto;
-    if (Object.keys(userFields).length) {
+    const {
+      displayName,
+      taxId,
+      ownerStatus,
+      metadata,
+      userId: newUserId,
+      ...userFields
+    } = dto;
+
+    // Re-link to a different user if requested
+    if (newUserId !== undefined) {
+      if (newUserId !== owner.userId) {
+        const targetUser = await userRepo().findOne({
+          where: { id: newUserId }
+        });
+        if (!targetUser) throw new AppError("User not found", 404);
+        const conflict = await ownerRepo().findOne({
+          where: { userId: newUserId }
+        });
+        if (conflict) throw new AppError("User is already an owner", 409);
+        await manager.update(Owner, id, { userId: newUserId });
+        await manager.update(User, newUserId, { role: UserRole.ADMIN });
+      }
+    } else if (Object.keys(userFields).length) {
       await manager.update(User, owner.userId, userFields);
     }
 

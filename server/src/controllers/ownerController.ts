@@ -1,8 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import {
   createOwnerSchema,
+  createOwnerFromUserSchema,
   updateOwnerSchema,
   createOwner,
+  createOwnerFromUser,
   getOwners,
   getOwnerById,
   getOwnerByUserId,
@@ -49,6 +51,18 @@ export const createOwnerHandler = [
   }
 ] as const;
 
+export const createOwnerFromUserHandler = [
+  validate(createOwnerFromUserSchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const owner = await createOwnerFromUser(req.body);
+      res.status(201).json({ success: true, data: owner });
+    } catch (err) {
+      next(err);
+    }
+  }
+] as const;
+
 export const updateOwnerHandler = [
   validate(updateOwnerSchema),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -81,7 +95,8 @@ export const getMyOwner = async (
 ) => {
   try {
     const owner = await getOwnerByUserId(req.user!.userId);
-    if (!owner) return res.status(404).json({ success: false, message: "Not an owner" });
+    if (!owner)
+      return res.status(404).json({ success: false, message: "Not an owner" });
     res.json({ success: true, data: owner });
   } catch (err) {
     next(err);

@@ -9,6 +9,7 @@ import { ownerApi } from "../api/ownerApi";
 import type {
   Owner,
   CreateOwnerPayload,
+  CreateOwnerFromUserPayload,
   UpdateOwnerPayload
 } from "@/types/Owner.model";
 
@@ -63,6 +64,22 @@ export const useCreateOwner = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateOwnerPayload) => ownerApi.create(payload),
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: ownerKeys.lists() });
+      return options?.onSuccess?.(...args);
+    },
+    onError: options?.onError,
+    onSettled: options?.onSettled
+  });
+};
+
+export const useCreateOwnerFromUser = (
+  options?: UseMutationOptions<Owner, Error, CreateOwnerFromUserPayload>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateOwnerFromUserPayload) =>
+      ownerApi.createFromUser(payload),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ownerKeys.lists() });
       return options?.onSuccess?.(...args);

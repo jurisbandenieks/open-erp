@@ -2,6 +2,7 @@ import { axiosClient } from "./client";
 import type {
   Owner,
   CreateOwnerPayload,
+  CreateOwnerFromUserPayload,
   UpdateOwnerPayload
 } from "@/types/Owner.model";
 
@@ -9,6 +10,7 @@ export type {
   Owner,
   OwnerUser,
   CreateOwnerPayload,
+  CreateOwnerFromUserPayload,
   UpdateOwnerPayload
 } from "@/types/Owner.model";
 
@@ -30,6 +32,16 @@ export const ownerApi = {
   create: async (payload: CreateOwnerPayload): Promise<Owner> => {
     const { data } = await axiosClient.post<{ data: Owner }>(
       OWNER_ENDPOINT,
+      payload
+    );
+    return data.data;
+  },
+
+  createFromUser: async (
+    payload: CreateOwnerFromUserPayload
+  ): Promise<Owner> => {
+    const { data } = await axiosClient.post<{ data: Owner }>(
+      `${OWNER_ENDPOINT}/from-user`,
       payload
     );
     return data.data;

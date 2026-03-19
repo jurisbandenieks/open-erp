@@ -29,7 +29,14 @@ export interface CreateOwnerPayload {
   status?: string;
 }
 
+export interface CreateOwnerFromUserPayload {
+  userId: string;
+  displayName?: string;
+  taxId?: string;
+}
+
 export interface UpdateOwnerPayload {
+  userId?: string;
   firstName?: string;
   lastName?: string;
   displayName?: string;

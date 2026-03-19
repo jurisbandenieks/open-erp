@@ -5,6 +5,7 @@ import {
   listOwners,
   getOwner,
   createOwnerHandler,
+  createOwnerFromUserHandler,
   updateOwnerHandler,
   removeOwner,
   getMyOwner
@@ -23,6 +24,7 @@ router.use(authorize(UserRole.ADMIN));
 router.get("/", listOwners);
 router.get("/:id", getOwner);
 router.post("/", ...createOwnerHandler);
+router.post("/from-user", ...createOwnerFromUserHandler);
 router.put("/:id", ...updateOwnerHandler);
 router.delete("/:id", removeOwner);
 
