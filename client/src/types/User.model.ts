@@ -26,6 +26,7 @@ export interface User {
   role: string;
   status: string;
   emailVerified: boolean;
+  mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;

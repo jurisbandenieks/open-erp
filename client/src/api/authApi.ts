@@ -37,6 +37,18 @@ export const authApi = {
     );
   },
 
+  changePassword: async (
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> => {
+    await authClient.post(
+      "/change-password",
+      { currentPassword, newPassword },
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+  },
+
   refresh: async (
     refreshToken: string
   ): Promise<Pick<AuthResponse, "accessToken">> => {

@@ -6,7 +6,8 @@ import {
   registerHandler,
   validateHandler,
   refreshHandler,
-  logoutHandler
+  logoutHandler,
+  changePasswordHandler
 } from "../controllers/authController";
 import { requireBearer } from "../middleware/requireBearer";
 
@@ -46,5 +47,18 @@ router.post("/refresh", validate(refreshSchema), refreshHandler);
 
 /** POST /logout — Authorization: Bearer <token>, body: { userId } */
 router.post("/logout", requireBearer, logoutHandler);
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8)
+});
+
+/** POST /change-password — Authorization: Bearer <token> */
+router.post(
+  "/change-password",
+  requireBearer,
+  validate(changePasswordSchema),
+  changePasswordHandler
+);
 
 export default router;

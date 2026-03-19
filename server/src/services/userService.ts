@@ -30,7 +30,8 @@ export const updateUserSchema = z.object({
   country: z.nativeEnum(Country).optional(),
   role: z.nativeEnum(UserRole).optional(),
   status: z.nativeEnum(UserStatus).optional(),
-  emailVerified: z.boolean().optional()
+  emailVerified: z.boolean().optional(),
+  mustChangePassword: z.boolean().optional()
 });
 
 export const listUsersQuerySchema = z.object({
@@ -153,7 +154,8 @@ export const createUser = async (dto: CreateUserDto) => {
 
   const user = userRepo().create({
     ...dto,
-    password: bcrypt.hashSync(dto.password, 10)
+    password: bcrypt.hashSync(dto.password, 10),
+    mustChangePassword: true
   });
 
   return userRepo().save(user);

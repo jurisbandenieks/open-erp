@@ -16,6 +16,7 @@ interface AuthUser {
   firstName: string;
   lastName: string;
   role: string;
+  mustChangePassword: boolean;
 }
 
 interface AuthContextType {
@@ -52,14 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (payload: LoginPayload) => {
-    const data: AuthResponse = await authApi.login(payload);
-    setAccessToken(data.accessToken);
-    setUser(data.user);
-    localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("refreshToken", data.refreshToken);
-    localStorage.setItem("authUser", JSON.stringify(data.user));
-  }, []);
+  const login = useCallback(
+    async (payload: LoginPayload) => {
+      const data: AuthResponse = await authApi.login(payload);
+      setAccessToken(data.accessToken);
+      setUser(data.user);
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("authUser", JSON.stringify(data.user));
+      if (data.user.mustChangePassword) {
+        navigate("/change-password", { replace: true });
+      }
+    },
+    [navigate]
+  );
 
   const logout = useCallback(async () => {
     try {

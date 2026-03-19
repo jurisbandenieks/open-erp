@@ -193,3 +193,31 @@ export const logout = async (
   // Remove the refresh token so it cannot be used to create new sessions
   await redisClient.del(`${REFRESH_PREFIX}${userId}`);
 };
+
+// ─── Change Password ──────────────────────────────────────────────────────────
+
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  const userRepo = AuthDataSource.getRepository(User);
+
+  const user = await userRepo
+    .createQueryBuilder("user")
+    .addSelect("user.password")
+    .where("user.id = :id", { id: userId })
+    .getOne();
+
+  if (!user) throw new AppError("User not found", 404);
+
+  const valid = await bcrypt.compare(currentPassword, user.password);
+  if (!valid) throw new AppError("Current password is incorrect", 400);
+
+  if (newPassword.length < 8)
+    throw new AppError("New password must be at least 8 characters", 400);
+
+  user.password = await bcrypt.hash(newPassword, 12);
+  user.mustChangePassword = false;
+  await userRepo.save(user);
+};

@@ -15,7 +15,7 @@ import {
   Title
 } from "@mantine/core";
 import { IconAt, IconLock } from "@tabler/icons-react";
-import { Link, useNavigate, Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAuth } from "@/context/AuthContext";
 
@@ -26,7 +26,6 @@ interface LoginFormValues {
 
 export function LoginPage() {
   const { login, isAuthenticated, isLoading } = useAuth();
-  const navigate = useNavigate();
 
   if (!isLoading && isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -54,7 +53,7 @@ export function LoginPage() {
       } else {
         localStorage.removeItem("rememberEmail");
       }
-      navigate("/", { replace: true });
+      // navigation is handled inside AuthContext.login()
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data

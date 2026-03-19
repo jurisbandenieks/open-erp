@@ -45,6 +45,9 @@ export class User {
   @Column({ default: false })
   emailVerified!: boolean;
 
+  @Column({ default: false })
+  mustChangePassword!: boolean;
+
   @Column({ nullable: true, type: "timestamptz" })
   lastLoginAt!: Date;
 

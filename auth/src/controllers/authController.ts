@@ -4,7 +4,8 @@ import {
   validate as validateToken,
   refresh,
   logout,
-  register
+  register,
+  changePassword
 } from "../services/tokenService";
 import { AppError } from "../middleware/errorHandler";
 import "../middleware/requireBearer";
@@ -90,6 +91,24 @@ export const logoutHandler = async (
     if (!userId) return next(new AppError("userId is required", 400));
 
     await logout(req.token!, userId);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const changePasswordHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const payload = await validateToken(req.token!);
+    const { currentPassword, newPassword } = req.body as {
+      currentPassword: string;
+      newPassword: string;
+    };
+    await changePassword(payload.userId, currentPassword, newPassword);
     res.status(204).send();
   } catch (err) {
     next(err);

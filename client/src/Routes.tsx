@@ -9,6 +9,7 @@ import { Companies } from "@/views/Companies/Companies";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "@/views/Auth/LoginPage";
 import RegisterPage from "@/views/Auth/RegisterPage";
+import ChangePasswordPage from "@/views/Auth/ChangePasswordPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { SysadminRoute } from "@/components/ProtectedRoute/SysadminRoute";
 import { OwnerOrAdminRoute } from "@/components/ProtectedRoute/OwnerOrAdminRoute";
@@ -30,6 +31,7 @@ const AppRoutes = () => {
 
           {/* Protected application routes */}
           <Route element={<ProtectedRoute />}>
+            <Route path="/change-password" element={<ChangePasswordPage />} />
             <Route path="/" element={<Layout />}>
               {/* Employee section */}
               <Route index element={<Home />} />
