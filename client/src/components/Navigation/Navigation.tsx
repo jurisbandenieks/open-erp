@@ -35,7 +35,7 @@ const employeeItems: MenuItem[] = [
     path: "/absences",
     roles: ["employee"]
   },
-  { icon: IconClock, label: "Timelogs", path: "/timelogs", roles: null }
+  { icon: IconClock, label: "Timelogs", path: "/timelogs", roles: ["employee"] }
 ];
 
 const ownerItems: MenuItem[] = [

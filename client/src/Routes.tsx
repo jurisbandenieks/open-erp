@@ -38,8 +38,8 @@ const AppRoutes = () => {
               <Route index element={<Home />} />
               <Route element={<EmployeeRoute />}>
                 <Route path="absences" element={<Absences />} />
+                <Route path="timelogs" element={<Timelogs />} />
               </Route>
-              <Route path="timelogs" element={<Timelogs />} />
 
               {/* Management section */}
               <Route path="management">

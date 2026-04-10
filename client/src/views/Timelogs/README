@@ -6,7 +6,9 @@ The Timelogs page (`/timelogs`) lets employees record and review their working h
 
 ## Route
 
-`/timelogs` — protected route, accessible to all authenticated users.
+`/timelogs` — protected route, accessible to **employees only** (users with an employee record). Users without an employee record are redirected to the home page.
+
+Managers, Owners, and Admins review and approve timelog entries via the **Approvals** page (`/management/approvals`).
 
 ---
 
