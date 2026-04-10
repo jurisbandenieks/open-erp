@@ -14,6 +14,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { SysadminRoute } from "@/components/ProtectedRoute/SysadminRoute";
 import { OwnerOrAdminRoute } from "@/components/ProtectedRoute/OwnerOrAdminRoute";
 import { ManagerOrOwnerOrAdminRoute } from "@/components/ProtectedRoute/ManagerOrOwnerOrAdminRoute";
+import { EmployeeRoute } from "@/components/ProtectedRoute/EmployeeRoute";
 import { AuthProvider } from "@/context/AuthContext";
 import { Absences } from "./views/Absences/Absences";
 import { AbsencesManagement } from "./views/AbsencesManagement/AbsencesManagement";
@@ -35,7 +36,9 @@ const AppRoutes = () => {
             <Route path="/" element={<Layout />}>
               {/* Employee section */}
               <Route index element={<Home />} />
-              <Route path="absences" element={<Absences />} />
+              <Route element={<EmployeeRoute />}>
+                <Route path="absences" element={<Absences />} />
+              </Route>
               <Route path="timelogs" element={<Timelogs />} />
 
               {/* Management section */}

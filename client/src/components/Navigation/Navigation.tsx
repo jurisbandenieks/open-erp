@@ -29,7 +29,12 @@ type MenuItem = {
 
 const employeeItems: MenuItem[] = [
   { icon: IconHome, label: "Dashboard", path: "/", roles: null },
-  { icon: IconCalendar, label: "Absences", path: "/absences", roles: null },
+  {
+    icon: IconCalendar,
+    label: "Absences",
+    path: "/absences",
+    roles: ["employee"]
+  },
   { icon: IconClock, label: "Timelogs", path: "/timelogs", roles: null }
 ];
 
@@ -133,6 +138,7 @@ export function Navigation({ onNavigate }: NavigationProps) {
   const effectiveRoles = new Set<string>();
   if (user?.role) effectiveRoles.add(user.role);
   if (myOwner) effectiveRoles.add("owner");
+  if (myEmployee) effectiveRoles.add("employee");
   if ((myEmployee?.manageeIds?.length ?? 0) > 0) effectiveRoles.add("manager");
 
   const handleNavigate = (path: string) => {

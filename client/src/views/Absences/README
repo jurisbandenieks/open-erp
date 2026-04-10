@@ -2,11 +2,13 @@
 
 ## Access
 
-Accessible by all authenticated users.
+Accessible by **employees only** (users with an employee record). Users without an employee record (e.g. sysadmins, standalone owners) are redirected to the home page.
+
+Managers, Owners, and Admins manage absences for employees via the **Absence Management** page (`/management/absence-tracker`).
 
 ## Overview
 
-The Absences page allows employees to submit, track, and manage absence requests. Admins can review (approve or reject) any absence.
+The Absences page allows employees to submit, track, and view their own absence requests. Each employee can only see and manage their own absences.
 
 ## Absence types
 
