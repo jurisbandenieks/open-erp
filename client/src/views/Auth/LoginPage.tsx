@@ -19,6 +19,39 @@ import { Link, Navigate } from "react-router";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAuth } from "@/context/AuthContext";
 
+const DEV_USERS = [
+  {
+    label: "Sysadmin",
+    email: "sysadmin@openerp.local",
+    password: "Testing1!",
+    color: "red"
+  },
+  {
+    label: "Admin",
+    email: "admin@openerp.dev",
+    password: "Password123!",
+    color: "blue"
+  },
+  {
+    label: "Owner",
+    email: "owner@openerp.dev",
+    password: "Password123!",
+    color: "grape"
+  },
+  {
+    label: "Manager — Alice",
+    email: "alice.manager@openerp.dev",
+    password: "Password123!",
+    color: "teal"
+  },
+  {
+    label: "Manager — Bob",
+    email: "bob.manager@openerp.dev",
+    password: "Password123!",
+    color: "teal"
+  }
+];
+
 interface LoginFormValues {
   email: string;
   password: string;
@@ -36,6 +69,7 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<LoginFormValues>({
     defaultValues: { email: "", password: "" }
@@ -135,6 +169,30 @@ export function LoginPage() {
               Create one
             </Anchor>
           </Text>
+
+          {import.meta.env.DEV && (
+            <>
+              <Divider my="md" label="Dev quick login" labelPosition="center" />
+              <Stack gap="xs">
+                {DEV_USERS.map(({ label, email, password, color }) => (
+                  <Button
+                    key={email}
+                    variant="light"
+                    color={color}
+                    size="xs"
+                    fullWidth
+                    onClick={() => {
+                      setValue("email", email);
+                      setValue("password", password);
+                      handleSubmit(onSubmit)();
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </Stack>
+            </>
+          )}
         </Paper>
       </Box>
     </Center>
