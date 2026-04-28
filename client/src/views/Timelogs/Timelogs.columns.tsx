@@ -1,7 +1,9 @@
-import { Badge, Group, Text } from "@mantine/core";
+import { ActionIcon, Badge, Button, Group, Text } from "@mantine/core";
 import type { ColDef } from "ag-grid-community";
+import { IconPlus } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import type { Timelog } from "@/types/Timelog.model";
+import { STATUS_COLORS } from "@/utils/constants";
 
 const statusRenderer = (params: { value: string }) => {
   const colorMap: Record<string, string> = {
@@ -122,4 +124,151 @@ export const defaultTimelogColDef: ColDef = {
   sortable: true,
   filter: true,
   resizable: true
+};
+
+// ─── Employee week grid ───────────────────────────────────────────────────────
+
+export type GridRow = {
+  date: string;
+  dayLabel: string;
+  existingId: string | null;
+  totalHours: number | null;
+  type: string;
+  description: string;
+  status: string | null;
+  isDirty: boolean;
+  isSaving: boolean;
+};
+
+export const getWeekGridColumnDefs = (
+  handleSave: (row: GridRow) => void,
+  setCreateDate: (date: string | null) => void
+): ColDef<GridRow>[] => {
+  const isEditable = (params: { data?: GridRow }) =>
+    params.data?.status !== "submitted" && params.data?.status !== "approved";
+
+  return [
+    {
+      headerName: "Day",
+      field: "dayLabel",
+      width: 160,
+      pinned: "left",
+      editable: false,
+      sortable: false,
+      filter: false,
+      cellRenderer: (params: { data: GridRow }) => {
+        const isEmpty = !params.data.existingId && !params.data.isDirty;
+        return (
+          <Group gap={4} align="center" h="100%" wrap="nowrap">
+            <Text size="sm">{params.data.dayLabel}</Text>
+            {isEmpty && (
+              <ActionIcon
+                size="xs"
+                variant="subtle"
+                color="blue"
+                onClick={() => setCreateDate(params.data.date)}
+              >
+                <IconPlus size={10} />
+              </ActionIcon>
+            )}
+          </Group>
+        );
+      }
+    },
+    {
+      headerName: "Hours",
+      field: "totalHours",
+      width: 90,
+      type: "numericColumn",
+      editable: isEditable,
+      cellEditor: "agNumberCellEditor",
+      cellEditorParams: { min: 0, max: 24, precision: 1 },
+      valueFormatter: (p) => (p.value != null ? `${p.value}h` : "–")
+    },
+    {
+      headerName: "Type",
+      field: "type",
+      width: 140,
+      editable: isEditable,
+      cellEditor: "agSelectCellEditor",
+      cellEditorParams: {
+        values: ["standard", "overtime", "holiday", "sick", "other"]
+      },
+      cellRenderer: (params: { value: string }) => {
+        const colorMap: Record<string, string> = {
+          standard: "blue",
+          overtime: "orange",
+          holiday: "teal",
+          sick: "red",
+          other: "gray"
+        };
+        if (!params.value) return null;
+        return (
+          <Badge
+            color={colorMap[params.value] ?? "gray"}
+            variant="outline"
+            size="sm"
+          >
+            {params.value.toUpperCase()}
+          </Badge>
+        );
+      }
+    },
+    {
+      headerName: "Description",
+      field: "description",
+      flex: 1,
+      minWidth: 200,
+      editable: isEditable,
+      tooltipField: "description"
+    },
+    {
+      headerName: "Status",
+      field: "status",
+      width: 120,
+      editable: false,
+      sortable: false,
+      filter: false,
+      cellRenderer: (params: { value: string | null }) => {
+        if (!params.value)
+          return (
+            <Text size="xs" c="dimmed">
+              –
+            </Text>
+          );
+        return (
+          <Badge
+            color={STATUS_COLORS[params.value] ?? "gray"}
+            variant="light"
+            size="sm"
+          >
+            {params.value.toUpperCase()}
+          </Badge>
+        );
+      }
+    },
+    {
+      headerName: "",
+      field: "isDirty",
+      width: 90,
+      pinned: "right",
+      editable: false,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellRenderer: (params: { data: GridRow }) => {
+        if (!params.data?.isDirty) return null;
+        return (
+          <Button
+            size="xs"
+            loading={params.data.isSaving}
+            disabled={!params.data.totalHours}
+            onClick={() => handleSave(params.data)}
+          >
+            Save
+          </Button>
+        );
+      }
+    }
+  ];
 };
