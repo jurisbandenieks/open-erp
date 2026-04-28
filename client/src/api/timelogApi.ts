@@ -109,29 +109,29 @@ export const timelogApi = {
 
   // Create new timelog
   create: async (timelogData: CreateTimelogData) => {
-    const { data } = await axiosClient.post<Timelog>(
-      TIMELOG_ENDPOINT,
-      timelogData
-    );
-    return data;
+    const { data } = await axiosClient.post<{
+      success: boolean;
+      data: Timelog;
+    }>(TIMELOG_ENDPOINT, timelogData);
+    return data.data;
   },
 
   // Update timelog
   update: async (id: string, timelogData: UpdateTimelogData) => {
-    const { data } = await axiosClient.put<Timelog>(
+    const { data } = await axiosClient.put<{ success: boolean; data: Timelog }>(
       `${TIMELOG_ENDPOINT}/${id}`,
       timelogData
     );
-    return data;
+    return data.data;
   },
 
   // Partially update timelog
   patch: async (id: string, timelogData: Partial<UpdateTimelogData>) => {
-    const { data } = await axiosClient.patch<Timelog>(
-      `${TIMELOG_ENDPOINT}/${id}`,
-      timelogData
-    );
-    return data;
+    const { data } = await axiosClient.patch<{
+      success: boolean;
+      data: Timelog;
+    }>(`${TIMELOG_ENDPOINT}/${id}`, timelogData);
+    return data.data;
   },
 
   // Delete timelog
